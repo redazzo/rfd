@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/urfave/cli/v2"
 	"log"
 	"os"
-	"rfd.kessellhaak.dev/process/rfd/new"
-	"rfd.kessellhaak.dev/process/rfd/record"
+
+	"github.com/urfave/cli/v2"
 )
+
+var logger Trace = TraceLog{}
 
 func main() {
 
@@ -19,14 +20,14 @@ func main() {
 				Category: "Information",
 				Usage:    "Output the status of all rfd's to `FILE` in markdown format.",
 				Action: func(c *cli.Context) error {
-					return record.CreateEntries()
+					return CreateEntries()
 				},
 			},
 			{
 				Name:  "new",
 				Usage: "Create a new rfd, with an optionally specified `RFD ID` in nnn format",
 				Action: func(c *cli.Context) error {
-					new.NewRFD()
+					NewRFD()
 					return nil
 				},
 				Subcommands: []*cli.Command{
