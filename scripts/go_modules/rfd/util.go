@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 )
 
@@ -21,6 +20,5 @@ func CheckFatal(e error) {
 }
 
 func (t TraceLog) traceLog(msg string) {
-	fmt.Println(msg)
 	log.Print(msg)
 }
