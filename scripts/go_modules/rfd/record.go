@@ -18,8 +18,12 @@ import (
 		   there won't yet be an separate RFD directory in the trunk.
 		2. Trunk - Merged into the trunk.
 
-		Steps:
-		1.
+		Algorithm to create a new RFD:
+		1. Fetch all branches that match nnnn naming format, and keep a record of the greatest nnnn
+		2. Fetch all directories on the trunk that match nnnn naming format, and compare with prior greatest nnnn and keep a record of the highest nnnn.
+		3. Create a branch nnnn+1 --> mmmm
+		4. Create a readme.md file --> mmmm\readme.md
+
 */
 
 func CreateEntries() error {
