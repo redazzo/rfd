@@ -2,11 +2,11 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing"
 	"os"
+	"regexp"
 	"strconv"
 )
 
@@ -45,42 +45,49 @@ func NewRFD() {
 
 func getMaxRFDNumber() int {
 
-	// Fetch branches
-	//logger.traceLog("git branch")
+	err, maxRFDId := getMaxBranchRFD()
 
+	CheckFatal(err)
+
+	return maxRFDId
+}
+
+func getMaxBranchRFD() (error, int) {
 	r, err := git.PlainOpen(".")
 	CheckFatal(err)
 
-	// Length of the HEAD history
-	logger.traceLog("git rev-list HEAD --count")
+	logger.traceLog("git branch")
 
-	// ... retrieving the HEAD reference
-	ref, err := r.Head()
+	// ... retrieving the branches
+	branches, err := r.Branches()
 	CheckFatal(err)
 
-	// ... retrieves the commit history
-	cIter, err := r.Log(&git.LogOptions{From: ref.Hash()})
-	CheckFatal(err)
+	var maxRFDId int = 0
 
-	// ... just iterates over the commits
-	var cCount int
-	err = cIter.ForEach(func(c *object.Commit) error {
-		cCount++
+	branches.ForEach(func(p *plumbing.Reference) error {
+		rName := p.Name()
+		name := rName.String()
+
+		// Remove the first 11 characters as they refer to (I think) internal git
+		// identifiers.
+		sId := name[11:]
+
+		// A valid branch id is nnnn, e.g. 0007
+		entryIsBranchID, err := regexp.MatchString(`(^\d{4}).*`, sId)
+		CheckFatal(err)
+
+		if entryIsBranchID {
+			rfdId, err := strconv.Atoi(sId)
+			if err == nil {
+				if rfdId > maxRFDId {
+					maxRFDId = rfdId
+				}
+			}
+		}
 
 		return nil
 	})
-	CheckFatal(err)
-
-	fmt.Println(cCount)
-
-	//_, err := git.PlainClone("/tmp/foo", false, &git.CloneOptions{
-	//	URL:      "https://github.com/go-git/go-git",
-	//	Progress: os.Stdout,
-	//})
-
-	CheckFatal(err)
-
-	return 5
+	return err, maxRFDId
 }
 
 func getUserInput(txt string) string {
@@ -93,5 +100,5 @@ func getUserInput(txt string) string {
 
 func createRFD(rfdNumber int) error {
 
-	return errors.New("test error")
+	return nil //errors.New("test error")
 }
