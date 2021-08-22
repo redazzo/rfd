@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"regexp"
 )
 
 type Trace interface {
@@ -21,4 +22,9 @@ func CheckFatal(e error) {
 
 func (t TraceLog) traceLog(msg string) {
 	log.Print(msg)
+}
+
+func isMatchRFDId(name string) (bool, error) {
+	entryIsBranchID, err := regexp.MatchString(`(^\d{4}).*`, name)
+	return entryIsBranchID, err
 }

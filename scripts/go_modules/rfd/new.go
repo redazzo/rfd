@@ -6,7 +6,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"os"
-	"regexp"
 	"strconv"
 )
 
@@ -29,34 +28,40 @@ import (
 func NewRFD() {
 	logger.traceLog("Creating new RFD")
 
-	rfdNumber := getMaxRFDNumber()
+	newRFDNumber := getMaxRFDNumber() + 1
+	logger.traceLog("New RFD Number: " + strconv.Itoa(newRFDNumber))
 
 	title := getUserInput("Enter title of RFD: ")
 	authors := getUserInput("Enter authors, comma delimited: ")
 
-	err := createRFD(rfdNumber)
+	err := createRFD(newRFDNumber)
 	CheckFatal(err)
 
 	fmt.Println("Title: " + title)
 	fmt.Println("Authors: " + authors)
-	fmt.Println("RFD ID: " + strconv.Itoa(rfdNumber))
+	fmt.Println("RFD ID: " + strconv.Itoa(newRFDNumber))
 
 }
 
 func getMaxRFDNumber() int {
 
-	err, maxRFDId := getMaxBranchRFD()
-
+	err, maxRFDBranchId := getMaxBranchRFD()
+	CheckFatal(err)
+	err, maxRFDDirId := getMaxDirRFD()
 	CheckFatal(err)
 
-	return maxRFDId
+	if maxRFDBranchId > maxRFDDirId {
+		return maxRFDBranchId
+	}
+
+	return maxRFDDirId
 }
 
 func getMaxBranchRFD() (error, int) {
+
+	// Todo - consider using a configuration file to define the path
 	r, err := git.PlainOpen(".")
 	CheckFatal(err)
-
-	logger.traceLog("git branch")
 
 	// ... retrieving the branches
 	branches, err := r.Branches()
@@ -73,7 +78,7 @@ func getMaxBranchRFD() (error, int) {
 		sId := name[11:]
 
 		// A valid branch id is nnnn, e.g. 0007
-		entryIsBranchID, err := regexp.MatchString(`(^\d{4}).*`, sId)
+		entryIsBranchID, err := isMatchRFDId(sId)
 		CheckFatal(err)
 
 		if entryIsBranchID {
@@ -88,6 +93,38 @@ func getMaxBranchRFD() (error, int) {
 		return nil
 	})
 	return err, maxRFDId
+}
+
+func getMaxDirRFD() (error, int) {
+
+	var maxRFDId int = 0
+
+	entries := getDirectories()
+	for _, entry := range entries {
+
+		entryIsBranchID, err := isMatchRFDId(entry.Name())
+		CheckFatal(err)
+
+		if entryIsBranchID {
+
+			sId := entry.Name()
+
+			if entry.IsDir() {
+
+				rfdId, err := strconv.Atoi(sId)
+				if err == nil {
+					if rfdId > maxRFDId {
+						maxRFDId = rfdId
+					}
+				}
+
+			}
+
+		}
+
+	}
+
+	return nil, maxRFDId
 }
 
 func getUserInput(txt string) string {

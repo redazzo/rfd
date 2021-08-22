@@ -32,16 +32,16 @@ func CreateEntries() error {
 
 	// The entries to be read and written to the
 	// markdown table file.
-	entries := getDirectories()
 
 	// The file that will be updated with the
 	// rfd entries and their status.
 	mdTableFile := openMetadataTableFile()
 	CheckFatal(mdTableFile.Close())
 
+	entries := getDirectories()
 	for _, entry := range entries {
 
-		entryIsBranchID, err := regexp.MatchString(`(^\d{4}).*`, entry.Name())
+		entryIsBranchID, err := isMatchRFDId(entry.Name())
 		CheckFatal(err)
 
 		if entryIsBranchID {
