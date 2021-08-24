@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/storer"
 	"os"
 	"strconv"
 )
@@ -125,6 +126,21 @@ func getMaxDirRFD() (error, int) {
 	}
 
 	return nil, maxRFDId
+}
+
+func getMaxRemoteBranchRFD() (error, int) {
+	return nil, 0
+}
+
+func remoteBranches(s storer.ReferenceStorer) (storer.ReferenceIter, error) {
+	refs, err := s.IterReferences()
+	if err != nil {
+		return nil, err
+	}
+
+	return storer.NewReferenceFilteredIter(func(ref *plumbing.Reference) bool {
+		return ref.Name().IsRemote()
+	}, refs), nil
 }
 
 func getUserInput(txt string) string {
