@@ -16,7 +16,9 @@ type TraceLog struct {
 
 func CheckFatal(e error) {
 	if e != nil {
+		//debug.PrintStack()
 		log.Fatal(e)
+
 	}
 }
 

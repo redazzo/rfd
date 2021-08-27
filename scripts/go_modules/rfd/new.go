@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"github.com/go-git/go-git/v5/storage/memory"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -137,17 +140,34 @@ func getMaxDirRFD() (error, int) {
 func getMaxRemoteBranchRFD() (error, int) {
 
 	// Todo - consider using a configuration file to define the path
-	r, err := git.PlainOpen(".")
+	//r, err := git.PlainOpen(".")
+	//CheckFatal(err)
+
+	url := "git@github.com:redazzo/rfd.git"
+	var publicKey *ssh.PublicKeys
+	sshPath := os.Getenv("HOME") + "/.ssh/id_rsa.pub"
+	sshKey, _ := ioutil.ReadFile(sshPath)
+
+	print(string(sshKey))
+	publicKey, keyError := ssh.NewPublicKeysFromFile("redazzo@dev01", sshPath, "")
+	CheckFatal(keyError)
+
+	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
+		URL:      url,
+		Progress: os.Stdout,
+		Auth:     publicKey,
+	})
 	CheckFatal(err)
 
+	//err = r.Fetch(&git.FetchOptions{
+	//	Auth: publicKey,
+	//})
+	//CheckFatal(err)
+
 	remote, err := r.Remote("origin")
-	if err != nil {
-		panic(err)
-	}
+	CheckFatal(err)
 	refList, err := remote.List(&git.ListOptions{})
-	if err != nil {
-		panic(err)
-	}
+	CheckFatal(err)
 	refPrefix := "refs/heads/"
 	for _, ref := range refList {
 		refName := ref.Name().String()
