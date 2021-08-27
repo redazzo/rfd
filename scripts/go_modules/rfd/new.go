@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/storer"
 	"os"
 	"strconv"
+	"strings"
 )
 
 /*
@@ -50,9 +50,15 @@ func getMaxRFDNumber() int {
 	CheckFatal(err)
 	err, maxRFDDirId := getMaxDirRFD()
 	CheckFatal(err)
+	err, maxRemoteRFDBranchId := getMaxRemoteBranchRFD()
+	CheckFatal(err)
 
-	if maxRFDBranchId > maxRFDDirId {
-		return maxRFDBranchId
+	maxRFDId := maxRFDBranchId
+	if maxRFDDirId > maxRFDBranchId {
+		maxRFDId = maxRFDDirId
+	}
+	if maxRemoteRFDBranchId > maxRFDId {
+		maxRFDId = maxRemoteRFDBranchId
 	}
 
 	return maxRFDDirId
@@ -129,10 +135,33 @@ func getMaxDirRFD() (error, int) {
 }
 
 func getMaxRemoteBranchRFD() (error, int) {
-	return nil, 0
+
+	// Todo - consider using a configuration file to define the path
+	r, err := git.PlainOpen(".")
+	CheckFatal(err)
+
+	remote, err := r.Remote("origin")
+	if err != nil {
+		panic(err)
+	}
+	refList, err := remote.List(&git.ListOptions{})
+	if err != nil {
+		panic(err)
+	}
+	refPrefix := "refs/heads/"
+	for _, ref := range refList {
+		refName := ref.Name().String()
+		if !strings.HasPrefix(refName, refPrefix) {
+			continue
+		}
+		branchName := refName[len(refPrefix):]
+		fmt.Println(branchName)
+	}
+
+	return err, 0
 }
 
-func remoteBranches(s storer.ReferenceStorer) (storer.ReferenceIter, error) {
+/*func remoteBranches(s storer.ReferenceStorer) (storer.ReferenceIter, error) {
 	refs, err := s.IterReferences()
 	if err != nil {
 		return nil, err
@@ -141,7 +170,7 @@ func remoteBranches(s storer.ReferenceStorer) (storer.ReferenceIter, error) {
 	return storer.NewReferenceFilteredIter(func(ref *plumbing.Reference) bool {
 		return ref.Name().IsRemote()
 	}, refs), nil
-}
+}*/
 
 func getUserInput(txt string) string {
 	fmt.Println(txt)
