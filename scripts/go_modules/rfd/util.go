@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"regexp"
+	"runtime/debug"
 )
 
 type Trace interface {
@@ -16,7 +17,7 @@ type TraceLog struct {
 
 func CheckFatal(e error) {
 	if e != nil {
-		//debug.PrintStack()
+		debug.PrintStack()
 		log.Fatal(e)
 
 	}
