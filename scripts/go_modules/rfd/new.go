@@ -213,7 +213,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	}
 
 	// Branch
-	//createBranch(sRfdNumber)
+	CreateBranch(sRfdNumber)
 
 	// Create readme.md file with template @ template/readme.md
 
