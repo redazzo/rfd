@@ -215,6 +215,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	// Branch
 	createBranch(sRfdNumber)
 
+
 	// Create readme.md file with template @ template/readme.md
 
 	type Metadata struct {
