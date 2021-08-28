@@ -16,6 +16,14 @@ func main() {
 		Usage: "Create new rfd's, index and output their status, and manage their .",
 		Commands: []*cli.Command{
 			{
+				Name:     "test-branch",
+				Category: "Test",
+				Usage:    "Test",
+				Action: func(c *cli.Context) error {
+					return CreateBranch("TEST-BRANCH")
+				},
+			},
+			{
 				Name:     "write-status",
 				Category: "Information",
 				Usage:    "Output the status of all rfd's to `FILE` in markdown format.",
@@ -25,7 +33,7 @@ func main() {
 			},
 			{
 				Name:  "new",
-				Usage: "Create a new rfd, with an optionally specified `RFD ID` in nnn format",
+				Usage: "Create a new rfd",
 				Action: func(c *cli.Context) error {
 					NewRFD()
 					return nil

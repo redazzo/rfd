@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/storer"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
+	"text/template"
 )
 
 /*
@@ -24,6 +27,8 @@ import (
 		3. Create a branch nnnn+1 --> mmmm
 		4. Create a readme.md file --> mmmm\readme.md
 
+	TODO: Use configuration file for parameters
+
 */
 
 func NewRFD() {
@@ -35,30 +40,42 @@ func NewRFD() {
 	title := getUserInput("Enter title of RFD: ")
 	authors := getUserInput("Enter authors, comma delimited: ")
 
-	err := createRFD(newRFDNumber)
-	CheckFatal(err)
-
 	fmt.Println("Title: " + title)
 	fmt.Println("Authors: " + authors)
 	fmt.Println("RFD ID: " + strconv.Itoa(newRFDNumber))
+
+	err := createRFD(newRFDNumber, title, authors, "X", "LINK")
+
+	CheckFatal(err)
 
 }
 
 func getMaxRFDNumber() int {
 
-	err, maxRFDBranchId := getMaxBranchRFD()
+	err, maxRFDBranchId := getMaxBranchId()
 	CheckFatal(err)
-	err, maxRFDDirId := getMaxDirRFD()
-	CheckFatal(err)
+	logger.traceLog("Local branch max id: " + strconv.Itoa(maxRFDBranchId))
 
-	if maxRFDBranchId > maxRFDDirId {
-		return maxRFDBranchId
+	err, maxRFDDirId := getMaxDirId()
+	CheckFatal(err)
+	logger.traceLog("Directory branch max id: " + strconv.Itoa(maxRFDDirId))
+
+	err, maxRemoteRFDBranchId := getMaxRemoteBranchId()
+	CheckFatal(err)
+	logger.traceLog("Remote branch max id: " + strconv.Itoa(maxRemoteRFDBranchId))
+
+	maxRFDId := maxRFDBranchId
+	if maxRFDDirId > maxRFDBranchId {
+		maxRFDId = maxRFDDirId
+	}
+	if maxRemoteRFDBranchId > maxRFDId {
+		maxRFDId = maxRemoteRFDBranchId
 	}
 
 	return maxRFDDirId
 }
 
-func getMaxBranchRFD() (error, int) {
+func getMaxBranchId() (error, int) {
 
 	// Todo - consider using a configuration file to define the path
 	r, err := git.PlainOpen(".")
@@ -96,7 +113,7 @@ func getMaxBranchRFD() (error, int) {
 	return err, maxRFDId
 }
 
-func getMaxDirRFD() (error, int) {
+func getMaxDirId() (error, int) {
 
 	var maxRFDId int = 0
 
@@ -128,30 +145,165 @@ func getMaxDirRFD() (error, int) {
 	return nil, maxRFDId
 }
 
-func getMaxRemoteBranchRFD() (error, int) {
-	return nil, 0
-}
+func getMaxRemoteBranchId() (error, int) {
 
-func remoteBranches(s storer.ReferenceStorer) (storer.ReferenceIter, error) {
-	refs, err := s.IterReferences()
-	if err != nil {
-		return nil, err
+	var maxRemoteBranchId int = 0
+
+	// Todo -  using a configuration file to define the path
+	r, err := git.PlainOpen(".")
+	CheckFatal(err)
+
+	//url := "git@github.com:redazzo/rfd.git"
+	sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+	publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+	CheckFatal(err)
+
+	remote, err := r.Remote("origin")
+	CheckFatal(err)
+	refList, err := remote.List(&git.ListOptions{
+		Auth: publicKey,
+	})
+	CheckFatal(err)
+
+	refPrefix := "refs/heads/"
+	for _, ref := range refList {
+
+		refName := ref.Name().String()
+		if !strings.HasPrefix(refName, refPrefix) {
+			continue
+		}
+		branchName := refName[len(refPrefix):]
+
+		entryIsBranchID, err := isMatchRFDId(branchName)
+		CheckFatal(err)
+
+		if entryIsBranchID {
+			entryId, err := strconv.Atoi(branchName)
+			if (entryId > maxRemoteBranchId) && err == nil {
+				maxRemoteBranchId = entryId
+			}
+		}
 	}
 
-	return storer.NewReferenceFilteredIter(func(ref *plumbing.Reference) bool {
-		return ref.Name().IsRemote()
-	}, refs), nil
+	return err, maxRemoteBranchId
 }
 
 func getUserInput(txt string) string {
-	fmt.Println(txt)
+
+	print(txt + ": ")
 	reader := bufio.NewReader(os.Stdin)
+
+	// Hack, but it'll do. Too lazy to find a better way ...
 	responseTxt, err := reader.ReadString('\n')
+	responseTxt = strings.TrimSuffix(responseTxt, "\n")
 	CheckFatal(err)
 	return responseTxt
 }
 
-func createRFD(rfdNumber int) error {
+func createRFD(rfdNumber int, title string, authors string, state string, link string) error {
 
-	return nil //errors.New("test error")
+	// Create a directory name that matches nnnn
+
+	sRfdNumber := strconv.Itoa(rfdNumber)
+
+	strLength := len(sRfdNumber)
+	for strLength < 4 {
+		sRfdNumber = "0" + sRfdNumber
+		strLength++
+	}
+
+	// Branch
+	//createBranch(sRfdNumber)
+
+	// Create readme.md file with template @ template/readme.md
+
+	type Metadata struct {
+		RFDID   string
+		Title   string
+		Authors string
+		State   string
+		Link    string
+	}
+
+	metadata := Metadata{
+		sRfdNumber,
+		title,
+		authors,
+		state,
+		link,
+	}
+
+	bTemplate, err := ioutil.ReadFile("template/readme.md")
+	CheckFatal(err)
+	sTemplate := string(bTemplate)
+	tmpl, err := template.New("test").Parse(sTemplate)
+	CheckFatal(err)
+
+	// Create local directory
+
+	err = os.Mkdir(sRfdNumber, 0755)
+	CheckFatal(err)
+
+	// Write out new readme.md to nnnn/readme.md
+	// Status on readme.md will be set to "prediscussion"
+	fReadme, err := os.Create(sRfdNumber + "/readme.md")
+	CheckFatal(err)
+	defer fReadme.Close()
+
+	err = tmpl.Execute(fReadme, metadata)
+
+	return err
+}
+
+func CreateBranch(rfdNumber string) error {
+
+	r, err := git.PlainOpen(".")
+	CheckFatal(err)
+
+	//url := "git@github.com:redazzo/rfd.git"
+	//sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+	//publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+	//CheckFatal(err)
+
+	//remote, err := r.Remote("origin")
+	//CheckFatal(err)
+
+	/*ref, err := r.Head()
+
+		Name:   "rfdNumber",
+		Remote: "origin",
+		Merge:  ref.Name(),
+	}
+	err = r.CreateBranch(newBranch)
+	r.CreateBranch()
+
+	*/
+	headRef, err := r.Head()
+	CheckFatal(err)
+
+	// Create a new plumbing.HashReference object with the name of the branch
+	// and the hash from the HEAD. The reference name should be a full reference
+	// name and not an abbreviated one, as is used on the git cli.
+	//
+	// For tags we should use `refs/tags/%s` instead of `refs/heads/%s` used
+	// for branches.
+	rfName := "refs/heads/" + rfdNumber
+	ref := plumbing.NewHashReference(plumbing.ReferenceName(rfName), headRef.Hash())
+
+	// The created reference is saved in the storage.
+	err = r.Storer.SetReference(ref)
+	CheckFatal(err)
+
+	w, err := r.Worktree()
+	CheckFatal(err)
+
+	// ... checking out to commit
+	logger.traceLog("checking out")
+
+	err = w.Checkout(&git.CheckoutOptions{
+		Branch: ref.Name(),
+	})
+	CheckFatal(err)
+
+	return err
 }
