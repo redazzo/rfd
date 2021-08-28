@@ -44,7 +44,7 @@ func NewRFD() {
 	fmt.Println("Authors: " + authors)
 	fmt.Println("RFD ID: " + strconv.Itoa(newRFDNumber))
 
-	err := createRFD(newRFDNumber, title, authors, "X", "LINK")
+	err := createRFD(newRFDNumber, title, authors, "prediscussion", "")
 
 	CheckFatal(err)
 
@@ -213,7 +213,8 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	}
 
 	// Branch
-	//createBranch(sRfdNumber)
+	createBranch(sRfdNumber)
+
 
 	// Create readme.md file with template @ template/readme.md
 
@@ -255,7 +256,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	return err
 }
 
-func CreateBranch(rfdNumber string) error {
+func createBranch(rfdNumber string) error {
 
 	r, err := git.PlainOpen(".")
 	CheckFatal(err)
