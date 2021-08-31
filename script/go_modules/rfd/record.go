@@ -41,7 +41,7 @@ func CreateEntries() error {
 	entries := getDirectories()
 	for _, entry := range entries {
 
-		entryIsBranchID, err := isMatchRFDId(entry.Name())
+		entryIsBranchID, err := isRFDIDFormat(entry.Name())
 		CheckFatal(err)
 
 		if entryIsBranchID {
