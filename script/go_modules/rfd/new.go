@@ -75,7 +75,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	err, _ = writeReadme(sRfdNumber, title, authors, state, link)
 	CheckFatal(err)
 
-	_, err = w.Add(getRFDDirectory(sRfdNumber) + "/readme.md")
+	_, err = w.Add(config.RFDRelativeDirectory + "/" + sRfdNumber + "/readme.md")
 	CheckFatal(err)
 
 

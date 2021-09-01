@@ -12,6 +12,7 @@ var config *configuration
 type configuration struct {
 	RFDRootDirectory string `yaml:"rfd-root-directory"`
 	InstallDirectory string `yaml:"install-directory"`
+	RFDRelativeDirectory string `yaml:"rfd-relative-directory"`
 }
 
 func main() {
