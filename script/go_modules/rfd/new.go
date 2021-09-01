@@ -69,8 +69,22 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	}
 
 	// Branch
-	createBranch(sRfdNumber)
+	err, w := createBranch(sRfdNumber)
+	CheckFatal(err)
 
+	err, _ = writeReadme(sRfdNumber, title, authors, state, link)
+	CheckFatal(err)
+
+	_, err = w.Add(getRFDDirectory(sRfdNumber) + "/readme.md")
+	CheckFatal(err)
+
+	
+
+
+	return err
+}
+
+func writeReadme(sRfdNumber string, title string, authors string, state string, link string) (error, *os.File) {
 	// Create readme.md file with template @ template/readme.md
 	metadata := RFDMetadata{
 		sRfdNumber,
@@ -98,15 +112,14 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	defer fReadme.Close()
 
 	err = tmpl.Execute(fReadme, metadata)
-
-	return err
+	return err, fReadme
 }
 
 func getRFDDirectory(sRfdNumber string) string {
 	return config.RFDRootDirectory + "/" + sRfdNumber
 }
 
-func createBranch(rfdNumber string) error {
+func createBranch(rfdNumber string) (error, *git.Worktree) {
 
 	r, err := git.PlainOpen(".")
 	CheckFatal(err)
@@ -138,7 +151,7 @@ func createBranch(rfdNumber string) error {
 	})
 	CheckFatal(err)
 
-	return err
+	return err, w
 }
 
 func getMaxRFDNumber() int {
