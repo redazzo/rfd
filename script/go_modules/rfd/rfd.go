@@ -45,12 +45,6 @@ func createCommandLineApp() *cli.App {
 				},
 				Subcommands: []*cli.Command{
 					{
-						Name: "rfd",
-						Action: func(c *cli.Context) error {
-							return nil
-						},
-					},
-					{
 						Name: "repository",
 						Action: func(c *cli.Context) error {
 							return nil
