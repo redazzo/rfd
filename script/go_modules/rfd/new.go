@@ -78,7 +78,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	_, err = w.Add(getRFDDirectory(sRfdNumber) + "/readme.md")
 	CheckFatal(err)
 
-	
+
 
 
 	return err
