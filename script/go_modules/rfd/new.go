@@ -59,7 +59,6 @@ func NewRFD() {
 func createRFD(rfdNumber int, title string, authors string, state string, link string) error {
 
 	// Create a directory name that matches nnnn
-
 	sRfdNumber := strconv.Itoa(rfdNumber)
 
 	strLength := len(sRfdNumber)
@@ -68,8 +67,8 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 		strLength++
 	}
 
-	// Branch
-	err, w := createBranch(sRfdNumber)
+	// Branch, write the readme file, stage, commit, and push
+	err, _, w := createBranch(sRfdNumber)
 	CheckFatal(err)
 
 	err, _ = writeReadme(sRfdNumber, title, authors, state, link)
@@ -77,6 +76,12 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
 	_, err = w.Add(config.RFDRelativeDirectory + "/" + sRfdNumber + "/readme.md")
 	CheckFatal(err)
+
+	_, err = w.Commit("Earmark branch", &git.CommitOptions{
+		All: true,
+	})
+
+	//r.Push()
 
 
 
@@ -119,7 +124,7 @@ func getRFDDirectory(sRfdNumber string) string {
 	return config.RFDRootDirectory + "/" + sRfdNumber
 }
 
-func createBranch(rfdNumber string) (error, *git.Worktree) {
+func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree) {
 
 	r, err := git.PlainOpen(".")
 	CheckFatal(err)
@@ -151,7 +156,7 @@ func createBranch(rfdNumber string) (error, *git.Worktree) {
 	})
 	CheckFatal(err)
 
-	return err, w
+	return err, r, w
 }
 
 func getMaxRFDNumber() int {
