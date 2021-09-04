@@ -170,6 +170,7 @@ func createBranch3(branchName string) (error, *git.Repository, *git.Worktree) {
     r, err := git.PlainOpen(".")
     CheckFatal(err)
 
+    logger.traceLog("Creating branch " + branchName)
     localRef := plumbing.NewBranchReferenceName(branchName)
     opts := &config.Branch{
         Name:   branchName,
