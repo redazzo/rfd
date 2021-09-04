@@ -68,7 +68,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	}
 
 	// Branch, write the readme file, stage, commit, and push
-	err, _, w := createBranch(sRfdNumber)
+	err, r, w := createBranch(sRfdNumber)
 	CheckFatal(err)
 
 	err, _ = writeReadme(sRfdNumber, title, authors, state, link)
@@ -80,11 +80,36 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	_, err = w.Commit("Earmark branch", &git.CommitOptions{
 		All: true,
 	})
+	CheckFatal(err)
 
-	//r.Push()
+	/*
 
+	//url := "git@github.com:redazzo/rfd.git"
+		//sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+		//publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+		//CheckFatal(err)
 
+		//remote, err := r.Remote("origin")
+		//CheckFatal(err)
 
+		/*ref, err := r.Head()
+			Name:   "rfdNumber",
+			Remote: "origin",
+			Merge:  ref.Name(),
+		}
+		err = r.CreateBranch(newBranch)
+		r.CreateBranch()
+
+	*/
+
+	sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+	publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+	CheckFatal(err)
+
+	err = r.Push( &git.PushOptions{
+		RemoteName: "origin",
+		Auth: publicKey,
+	})
 
 	return err
 }
