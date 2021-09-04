@@ -7,7 +7,7 @@ import (
 )
 
 var logger Trace = TraceLog{}
-var config *configuration
+var appConfig *configuration
 
 type configuration struct {
 	RFDRootDirectory string `yaml:"rfd-root-directory"`
@@ -19,7 +19,7 @@ type configuration struct {
 
 func main() {
 
-	config = populateConfig()
+	appConfig = populateConfig()
 	app := createCommandLineApp()
 	err := app.Run(os.Args)
 	CheckFatal(err)
@@ -105,11 +105,11 @@ VERSION:
 }
 
 func populateConfig() *configuration {
-	// Create config structure
+	// Create appConfig structure
 	config := &configuration{}
 
-	// Open config file
-	file, err := os.Open("./config.yml")
+	// Open appConfig file
+	file, err := os.Open("./appConfig.yml")
 	CheckFatal(err)
 
 	defer file.Close()

@@ -1,16 +1,17 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
-	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
-	"io/ioutil"
-	"os"
-	"strconv"
-	"strings"
-	"text/template"
+    "bufio"
+    "fmt"
+    "github.com/go-git/go-git/v5"
+    "github.com/go-git/go-git/v5/config"
+    "github.com/go-git/go-git/v5/plumbing"
+    "github.com/go-git/go-git/v5/plumbing/transport/ssh"
+    "io/ioutil"
+    "os"
+    "strconv"
+    "strings"
+    "text/template"
 )
 
 /*
@@ -30,309 +31,346 @@ import (
 */
 
 type RFDMetadata struct {
-	RFDID   string
-	Title   string
-	Authors string
-	State   string
-	Link    string
+    RFDID   string
+    Title   string
+    Authors string
+    State   string
+    Link    string
 }
 
 func NewRFD() {
-	logger.traceLog("Creating new RFD")
+    logger.traceLog("Creating new RFD")
 
-	newRFDNumber := getMaxRFDNumber() + 1
-	logger.traceLog("New RFD Number: " + strconv.Itoa(newRFDNumber))
+    newRFDNumber := getMaxRFDNumber() + 1
+    logger.traceLog("New RFD Number: " + strconv.Itoa(newRFDNumber))
 
-	title := getUserInput("Enter title of RFD: ")
-	authors := getUserInput("Enter authors, comma delimited: ")
+    title := getUserInput("Enter title of RFD: ")
+    authors := getUserInput("Enter authors, comma delimited: ")
 
-	fmt.Println("Title: " + title)
-	fmt.Println("Authors: " + authors)
-	fmt.Println("RFD ID: " + strconv.Itoa(newRFDNumber))
+    fmt.Println("Title: " + title)
+    fmt.Println("Authors: " + authors)
+    fmt.Println("RFD ID: " + strconv.Itoa(newRFDNumber))
 
-	err := createRFD(newRFDNumber, title, authors, "prediscussion", "")
+    err := createRFD(newRFDNumber, title, authors, "prediscussion", "")
 
-	CheckFatal(err)
+    CheckFatal(err)
 
 }
 
 func createRFD(rfdNumber int, title string, authors string, state string, link string) error {
 
-	// Create a directory name that matches nnnn
-	sRfdNumber := strconv.Itoa(rfdNumber)
+    // Create a directory name that matches nnnn
+    sRfdNumber := strconv.Itoa(rfdNumber)
 
-	strLength := len(sRfdNumber)
-	for strLength < 4 {
-		sRfdNumber = "0" + sRfdNumber
-		strLength++
-	}
+    strLength := len(sRfdNumber)
+    for strLength < 4 {
+        sRfdNumber = "0" + sRfdNumber
+        strLength++
+    }
 
-	// Branch, write the readme file, stage, commit, and push
-	err, r, w := createBranch(sRfdNumber)
-	CheckFatal(err)
+    // Branch, write the readme file, stage, commit, and push
+    err, _, w := createBranch2(sRfdNumber)
+    CheckFatal(err)
 
-	logger.traceLog("Creating placeholder readme file, and adding to repository")
-	err, _ = writeReadme(sRfdNumber, title, authors, state, link)
-	CheckFatal(err)
+    logger.traceLog("Creating placeholder readme file, and adding to repository")
+    err, _ = writeReadme(sRfdNumber, title, authors, state, link)
+    CheckFatal(err)
 
-	_, err = w.Add(config.RFDRelativeDirectory + "/" + sRfdNumber + "/readme.md")
-	CheckFatal(err)
+    _, err = w.Add(appConfig.RFDRelativeDirectory + "/" + sRfdNumber + "/readme.md")
+    CheckFatal(err)
 
-	logger.traceLog("Committing ...")
-	_, err = w.Commit("Earmark branch", &git.CommitOptions{
-		All: true,
-	})
-	CheckFatal(err)
+    logger.traceLog("Committing ...")
+    _, err = w.Commit("Earmark branch", &git.CommitOptions{
+        All: true,
+    })
+    CheckFatal(err)
 
-	/*
+    /*
 
-	//url := "git@github.com:redazzo/rfd.git"
-		//sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-		//publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
-		//CheckFatal(err)
+    	//url := "git@github.com:redazzo/rfd.git"
+    		//sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+    		//publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+    		//CheckFatal(err)
 
-		//remote, err := r.Remote("origin")
-		//CheckFatal(err)
+    		//remote, err := r.Remote("origin")
+    		//CheckFatal(err)
 
-		/*ref, err := r.Head()
-			Name:   "rfdNumber",
-			Remote: "origin",
-			Merge:  ref.Name(),
-		}
-		err = r.CreateBranch(newBranch)
-		r.CreateBranch()
+    		/*ref, err := r.Head()
+    			Name:   "rfdNumber",
+    			Remote: "origin",
+    			Merge:  ref.Name(),
+    		}
+    		err = r.CreateBranch(newBranch)
+    		r.CreateBranch()
 
-	*/
+    */
 
-	sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-	publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
-	CheckFatal(err)
+    /*sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+    publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+    CheckFatal(err)
 
 
-	logger.traceLog("Push to origin ...")
-	err = r.Push( &git.PushOptions{
-		RemoteName: "origin",
-		Auth: publicKey,
-	})
-	CheckFatal(err)
+    logger.traceLog("Push to origin ...")
+    err = r.Push( &git.PushOptions{
+    	RemoteName: "origin",
+    	Auth: publicKey,
+    })
+    CheckFatal(err)
+    */
 
-	return err
+    return err
 }
 
 func writeReadme(sRfdNumber string, title string, authors string, state string, link string) (error, *os.File) {
-	// Create readme.md file with template @ template/readme.md
-	metadata := RFDMetadata{
-		sRfdNumber,
-		title,
-		authors,
-		state,
-		link,
-	}
+    // Create readme.md file with template @ template/readme.md
+    metadata := RFDMetadata{
+        sRfdNumber,
+        title,
+        authors,
+        state,
+        link,
+    }
 
-	bTemplate, err := ioutil.ReadFile(config.InstallDirectory + "/template/readme.md")
-	CheckFatal(err)
-	sTemplate := string(bTemplate)
-	tmpl, err := template.New("test").Parse(sTemplate)
-	CheckFatal(err)
+    bTemplate, err := ioutil.ReadFile(appConfig.InstallDirectory + "/template/readme.md")
+    CheckFatal(err)
+    sTemplate := string(bTemplate)
+    tmpl, err := template.New("test").Parse(sTemplate)
+    CheckFatal(err)
 
-	// Create local directory
+    // Create local directory
 
-	err = os.Mkdir(getRFDDirectory(sRfdNumber), 0755)
-	CheckFatal(err)
+    err = os.Mkdir(getRFDDirectory(sRfdNumber), 0755)
+    CheckFatal(err)
 
-	// Write out new readme.md to nnnn/readme.md
-	// Status on readme.md will be set to "prediscussion"
-	fReadme, err := os.Create(getRFDDirectory(sRfdNumber) + "/readme.md")
-	CheckFatal(err)
-	defer fReadme.Close()
+    // Write out new readme.md to nnnn/readme.md
+    // Status on readme.md will be set to "prediscussion"
+    fReadme, err := os.Create(getRFDDirectory(sRfdNumber) + "/readme.md")
+    CheckFatal(err)
+    defer fReadme.Close()
 
-	err = tmpl.Execute(fReadme, metadata)
-	return err, fReadme
+    err = tmpl.Execute(fReadme, metadata)
+    return err, fReadme
 }
 
 func getRFDDirectory(sRfdNumber string) string {
-	return config.RFDRootDirectory + "/" + sRfdNumber
+    return appConfig.RFDRootDirectory + "/" + sRfdNumber
+}
+
+func createBranch2(rfdNumber string) (error, *git.Repository, *git.Worktree) {
+
+    r, err := git.PlainOpen(".")
+    CheckFatal(err)
+
+    // we want to create a branch 'nnnn' that'd track origin/master
+    var branchName, remote, remoteBranch = rfdNumber, "origin", rfdNumber
+
+    // we resolve origin/master to a hash
+    var remoteRef = plumbing.NewRemoteReferenceName(remote, remoteBranch)
+    ref, err := r.Reference(remoteRef, true)
+    CheckFatal(err)
+
+    // create a new "tracking appConfig"
+    var mergeRef = plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", remoteBranch))
+
+
+    branchConfig := &config.Branch{Name: branchName, Remote: remote, Merge: mergeRef}
+    err = r.CreateBranch(branchConfig)
+    CheckFatal(err)
+
+    // and finally create an "actual branch"
+    var localRef = plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branchName))
+    err = r.Storer.SetReference(plumbing.NewHashReference(localRef, ref.Hash()))
+    CheckFatal(err)
+
+    w, err := r.Worktree()
+
+    return err, r, w
 }
 
 func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree) {
 
-	r, err := git.PlainOpen(".")
-	CheckFatal(err)
+    r, err := git.PlainOpen(".")
+    CheckFatal(err)
 
-	headRef, err := r.Head()
-	CheckFatal(err)
+    headRef, err := r.Head()
+    CheckFatal(err)
 
-	// Create a new plumbing.HashReference object with the name of the branch
-	// and the hash from the HEAD. The reference name should be a full reference
-	// name and not an abbreviated one, as is used on the git cli.
-	//
-	// For tags we should use `refs/tags/%s` instead of `refs/heads/%s` used
-	// for branches.
-	rfName := "refs/heads/" + rfdNumber
-	ref := plumbing.NewHashReference(plumbing.ReferenceName(rfName), headRef.Hash())
+    // Create a new plumbing.HashReference object with the name of the branch
+    // and the hash from the HEAD. The reference name should be a full reference
+    // name and not an abbreviated one, as is used on the git cli.
+    //
+    // For tags we should use `refs/tags/%s` instead of `refs/heads/%s` used
+    // for branches.
+    rfName := "refs/heads/" + rfdNumber
+    ref := plumbing.NewHashReference(plumbing.ReferenceName(rfName), headRef.Hash())
 
-	// The created reference is saved in the storage.
-	err = r.Storer.SetReference(ref)
-	CheckFatal(err)
+    // The created reference is saved in the storage.
+    err = r.Storer.SetReference(ref)
+    CheckFatal(err)
 
-	w, err := r.Worktree()
-	CheckFatal(err)
+    w, err := r.Worktree()
+    CheckFatal(err)
 
-	// ... checking out to commit
-	logger.traceLog("checking out")
+    // ... checking out to commit
+    logger.traceLog("checking out")
 
-	err = w.Checkout(&git.CheckoutOptions{
-		Branch: ref.Name(),
-	})
-	CheckFatal(err)
+    err = w.Checkout(&git.CheckoutOptions{
+        Branch: ref.Name(),
+    })
+    CheckFatal(err)
 
-	return err, r, w
+    return err, r, w
 }
 
 func getMaxRFDNumber() int {
 
-	err, maxRFDBranchId := getMaxBranchId()
-	CheckFatal(err)
-	logger.traceLog("Local branch max id: " + strconv.Itoa(maxRFDBranchId))
+    err, maxRFDBranchId := getMaxBranchId()
+    CheckFatal(err)
+    logger.traceLog("Local branch max id: " + strconv.Itoa(maxRFDBranchId))
 
-	err, maxRFDDirId := getMaxDirId()
-	CheckFatal(err)
-	logger.traceLog("Directory branch max id: " + strconv.Itoa(maxRFDDirId))
+    err, maxRFDDirId := getMaxDirId()
+    CheckFatal(err)
+    logger.traceLog("Directory branch max id: " + strconv.Itoa(maxRFDDirId))
 
-	err, maxRemoteRFDBranchId := getMaxRemoteBranchId()
-	CheckFatal(err)
-	logger.traceLog("Remote branch max id: " + strconv.Itoa(maxRemoteRFDBranchId))
+    err, maxRemoteRFDBranchId := getMaxRemoteBranchId()
+    CheckFatal(err)
+    logger.traceLog("Remote branch max id: " + strconv.Itoa(maxRemoteRFDBranchId))
 
-	maxRFDId := maxRFDBranchId
-	if maxRFDDirId > maxRFDBranchId {
-		maxRFDId = maxRFDDirId
-	}
-	if maxRemoteRFDBranchId > maxRFDId {
-		maxRFDId = maxRemoteRFDBranchId
-	}
+    maxRFDId := maxRFDBranchId
+    if maxRFDDirId > maxRFDBranchId {
+        maxRFDId = maxRFDDirId
+    }
+    if maxRemoteRFDBranchId > maxRFDId {
+        maxRFDId = maxRemoteRFDBranchId
+    }
 
-	return maxRFDId
+    return maxRFDId
 }
 
 func getMaxBranchId() (error, int) {
 
-	r, err := git.PlainOpen(".")
-	CheckFatal(err)
+    r, err := git.PlainOpen(".")
+    CheckFatal(err)
 
-	// ... retrieving the branches
-	branches, err := r.Branches()
-	CheckFatal(err)
+    // ... retrieving the branches
+    branches, err := r.Branches()
+    CheckFatal(err)
 
-	var maxRFDId int = 0
+    var maxRFDId = 0
 
-	branches.ForEach(func(p *plumbing.Reference) error {
-		rName := p.Name()
-		name := rName.String()
+    branches.ForEach(func(p *plumbing.Reference) error {
+        rName := p.Name()
+        name := rName.String()
 
-		// Remove the first 11 characters as they refer to (I think) internal git
-		// identifiers.
-		sId := name[11:]
+        // Remove the first 11 characters as they refer to (I think) internal git
+        // identifiers.
+        sId := name[11:]
 
-		// A valid branch id is nnnn, e.g. 0007
-		entryIsBranchID, err := isRFDIDFormat(sId)
-		CheckFatal(err)
+        // A valid branch id is nnnn, e.g. 0007
+        entryIsBranchID, err := isRFDIDFormat(sId)
+        CheckFatal(err)
 
-		if entryIsBranchID {
-			rfdId, err := strconv.Atoi(sId)
-			if err == nil {
-				if rfdId > maxRFDId {
-					maxRFDId = rfdId
-				}
-			}
-		}
+        if entryIsBranchID {
+            rfdId, err := strconv.Atoi(sId)
+            if err == nil {
+                if rfdId > maxRFDId {
+                    maxRFDId = rfdId
+                }
+            }
+        }
 
-		return nil
-	})
-	return err, maxRFDId
+        return nil
+    })
+    return err, maxRFDId
 }
 
 func getMaxDirId() (error, int) {
 
-	var maxRFDId int = 0
+    var maxRFDId = 0
 
-	entries := getDirectories()
-	for _, entry := range entries {
+    entries := getDirectories()
+    for _, entry := range entries {
 
-		entryIsBranchID, err := isRFDIDFormat(entry.Name())
-		CheckFatal(err)
+        entryIsBranchID, err := isRFDIDFormat(entry.Name())
+        CheckFatal(err)
 
-		if entryIsBranchID {
+        if entryIsBranchID {
 
-			sId := entry.Name()
+            sId := entry.Name()
 
-			if entry.IsDir() {
+            if entry.IsDir() {
 
-				rfdId, err := strconv.Atoi(sId)
-				if err == nil {
-					if rfdId > maxRFDId {
-						maxRFDId = rfdId
-					}
-				}
+                rfdId, err := strconv.Atoi(sId)
+                if err == nil {
+                    if rfdId > maxRFDId {
+                        maxRFDId = rfdId
+                    }
+                }
 
-			}
+            }
 
-		}
+        }
 
-	}
+    }
 
-	return nil, maxRFDId
+    return nil, maxRFDId
 }
 
 func getMaxRemoteBranchId() (error, int) {
 
-	var maxRemoteBranchId int = 0
+    var maxRemoteBranchId = 0
 
-	r, err := git.PlainOpen(".")
-	CheckFatal(err)
+    r, err := git.PlainOpen(".")
+    CheckFatal(err)
 
-	//url := "git@github.com:redazzo/rfd.git"
-	sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-	publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
-	CheckFatal(err)
+    //url := "git@github.com:redazzo/rfd.git"
+    publicKey := getPublicKey(err)
 
-	remote, err := r.Remote("origin")
-	CheckFatal(err)
-	refList, err := remote.List(&git.ListOptions{
-		Auth: publicKey,
-	})
-	CheckFatal(err)
+    remote, err := r.Remote("origin")
+    CheckFatal(err)
+    refList, err := remote.List(&git.ListOptions{
+        Auth: publicKey,
+    })
+    CheckFatal(err)
 
-	refPrefix := "refs/heads/"
-	for _, ref := range refList {
+    refPrefix := "refs/heads/"
+    for _, ref := range refList {
 
-		refName := ref.Name().String()
-		if !strings.HasPrefix(refName, refPrefix) {
-			continue
-		}
-		branchName := refName[len(refPrefix):]
+        refName := ref.Name().String()
+        if !strings.HasPrefix(refName, refPrefix) {
+            continue
+        }
+        branchName := refName[len(refPrefix):]
 
-		entryIsBranchID, err := isRFDIDFormat(branchName)
-		CheckFatal(err)
+        entryIsBranchID, err := isRFDIDFormat(branchName)
+        CheckFatal(err)
 
-		if entryIsBranchID {
-			entryId, err := strconv.Atoi(branchName)
-			if (entryId > maxRemoteBranchId) && err == nil {
-				maxRemoteBranchId = entryId
-			}
-		}
-	}
+        if entryIsBranchID {
+            entryId, err := strconv.Atoi(branchName)
+            if (entryId > maxRemoteBranchId) && err == nil {
+                maxRemoteBranchId = entryId
+            }
+        }
+    }
 
-	return err, maxRemoteBranchId
+    return err, maxRemoteBranchId
+}
+
+func getPublicKey(err error) *ssh.PublicKeys {
+    sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+    publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+    CheckFatal(err)
+    return publicKey
 }
 
 func getUserInput(txt string) string {
 
-	print(txt + " ")
-	reader := bufio.NewReader(os.Stdin)
+    print(txt + " ")
+    reader := bufio.NewReader(os.Stdin)
 
-	// Hack, but it'll do. Too lazy to find a better way ...
-	responseTxt, err := reader.ReadString('\n')
-	responseTxt = strings.TrimSuffix(responseTxt, "\n")
-	CheckFatal(err)
-	return responseTxt
+    // Hack, but it'll do. Too lazy to find a better way ...
+    responseTxt, err := reader.ReadString('\n')
+    responseTxt = strings.TrimSuffix(responseTxt, "\n")
+    CheckFatal(err)
+    return responseTxt
 }
