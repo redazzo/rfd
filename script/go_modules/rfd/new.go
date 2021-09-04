@@ -314,8 +314,7 @@ func getMaxBranchId() (error, int) {
         rName := p.Name()
         name := rName.String()
 
-        // Remove the first 11 characters as they refer to (I think) internal git
-        // identifiers.
+        // Remove the "refs/heads/" identifiers.
         sId := name[11:]
 
         // A valid branch id is nnnn, e.g. 0007
