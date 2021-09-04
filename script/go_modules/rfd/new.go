@@ -69,7 +69,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     }
 
     // Branch, write the readme file, stage, commit, and push
-    err, r, w := createBranch2(sRfdNumber)
+    err, r, w := createBranch3(sRfdNumber)
     CheckFatal(err)
 
     logger.traceLog("Creating placeholder readme file, and adding to repository")
@@ -163,6 +163,36 @@ func writeReadme(sRfdNumber string, title string, authors string, state string, 
 
 func getRFDDirectory(sRfdNumber string) string {
     return appConfig.RFDRootDirectory + "/" + sRfdNumber
+}
+
+func createBranch3(branchName string) (error, *git.Repository, *git.Worktree) {
+
+    r, err := git.PlainOpen(".")
+    CheckFatal(err)
+
+    localRef := plumbing.NewBranchReferenceName(branchName)
+    opts := &config.Branch{
+        Name:   branchName,
+        Remote: "origin",
+        Merge:  localRef,
+    }
+
+    err = r.CreateBranch(opts)
+    CheckFatal(err)
+
+    w, err := r.Worktree()
+    CheckFatal(err)
+
+    err = w.Checkout(&git.CheckoutOptions{Branch: plumbing.ReferenceName(localRef.String())})
+    CheckFatal(err)
+
+    remoteRef := plumbing.NewRemoteReferenceName("origin", branchName)
+    newReference := plumbing.NewSymbolicReference(localRef, remoteRef)
+
+    err = r.Storer.SetReference(newReference)
+    CheckFatal(err)
+
+    return err, r, w
 }
 
 func createBranch2(rfdNumber string) (error, *git.Repository, *git.Worktree) {
