@@ -85,6 +85,8 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     })
     CheckFatal(err)
 
+    getUserInput("Pausing")
+
     //logger.traceLog("Creating various local and remote references ...")
     //localRef := plumbing.NewBranchReferenceName(fmt.Sprintf("refs/heads/%s", sRfdNumber))
     //remoteRef := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("refs/heads/%s", sRfdNumber))
