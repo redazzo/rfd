@@ -15,6 +15,8 @@ type configuration struct {
 	RFDRelativeDirectory string `yaml:"rfd-relative-directory"`
 }
 
+
+
 func main() {
 
 	config = populateConfig()

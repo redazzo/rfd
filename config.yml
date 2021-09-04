@@ -1,3 +1,12 @@
 rfd-root-directory: /home/redazzo/project/RFD/script/test
 rfd-relative-directory: script/test
 install-directory: /home/redazzo/project/RFD
+
+rfd-states:
+  - ideation
+  - discussion
+  - accepted
+  - implementing
+  - committed
+  - legacy
+  - abandoned
