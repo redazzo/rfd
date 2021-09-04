@@ -109,7 +109,7 @@ func populateConfig() *configuration {
 	config := &configuration{}
 
 	// Open appConfig file
-	file, err := os.Open("./appConfig.yml")
+	file, err := os.Open("./config.yml")
 	CheckFatal(err)
 
 	defer file.Close()
