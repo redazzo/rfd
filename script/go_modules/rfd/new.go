@@ -71,12 +71,14 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	err, r, w := createBranch(sRfdNumber)
 	CheckFatal(err)
 
+	logger.traceLog("Creating placeholder readme file, and adding to repository")
 	err, _ = writeReadme(sRfdNumber, title, authors, state, link)
 	CheckFatal(err)
 
 	_, err = w.Add(config.RFDRelativeDirectory + "/" + sRfdNumber + "/readme.md")
 	CheckFatal(err)
 
+	logger.traceLog("Committing ...")
 	_, err = w.Commit("Earmark branch", &git.CommitOptions{
 		All: true,
 	})
@@ -102,20 +104,12 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
 	*/
 
-	w.Pull(&git.PullOptions{
-
-	})
-
 	sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
 	publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
 	CheckFatal(err)
 
-	err = w.Pull(&git.PullOptions{
-		RemoteName: "origin",
-		Auth: publicKey,
-	})
-	CheckFatal(err)
 
+	logger.traceLog("Push to origin ...")
 	err = r.Push( &git.PushOptions{
 		RemoteName: "origin",
 		Auth: publicKey,
