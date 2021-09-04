@@ -69,7 +69,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     }
 
     // Branch, write the readme file, stage, commit, and push
-    err, _, w := createBranch2(sRfdNumber)
+    err, r, w := createBranch2(sRfdNumber)
     CheckFatal(err)
 
     logger.traceLog("Creating placeholder readme file, and adding to repository")
@@ -82,6 +82,15 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     logger.traceLog("Committing ...")
     _, err = w.Commit("Earmark branch", &git.CommitOptions{
         All: true,
+    })
+    CheckFatal(err)
+
+    publicKey, err := getPublicKey()
+
+    logger.traceLog("Push to origin ...")
+    err = r.Push( &git.PushOptions{
+        RemoteName: "origin",
+        Auth: publicKey,
     })
     CheckFatal(err)
 
@@ -157,6 +166,8 @@ func getRFDDirectory(sRfdNumber string) string {
 }
 
 func createBranch2(rfdNumber string) (error, *git.Repository, *git.Worktree) {
+
+    logger.traceLog("Creating branch ...")
 
     r, err := git.PlainOpen(".")
     CheckFatal(err)
@@ -324,7 +335,7 @@ func getMaxRemoteBranchId() (error, int) {
     CheckFatal(err)
 
     //url := "git@github.com:redazzo/rfd.git"
-    publicKey := getPublicKey(err)
+    publicKey, err := getPublicKey()
 
     remote, err := r.Remote("origin")
     CheckFatal(err)
@@ -356,11 +367,11 @@ func getMaxRemoteBranchId() (error, int) {
     return err, maxRemoteBranchId
 }
 
-func getPublicKey(err error) *ssh.PublicKeys {
+func getPublicKey() (*ssh.PublicKeys, error) {
     sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
     publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
     CheckFatal(err)
-    return publicKey
+    return publicKey, err
 }
 
 func getUserInput(txt string) string {
