@@ -183,6 +183,8 @@ func createBranch3(branchName string) (error, *git.Repository, *git.Worktree) {
     w, err := r.Worktree()
     CheckFatal(err)
 
+    logger.traceLog("Checking out " + localRef.String())
+
     err = w.Checkout(&git.CheckoutOptions{Branch: plumbing.ReferenceName(localRef.String())})
     CheckFatal(err)
 
