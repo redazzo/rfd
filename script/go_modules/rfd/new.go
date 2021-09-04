@@ -85,13 +85,13 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     })
     CheckFatal(err)
 
-    logger.traceLog("Creating various local and remote references ...")
-    localRef := plumbing.NewBranchReferenceName(fmt.Sprintf("refs/heads/%s", sRfdNumber))
-    remoteRef := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("refs/heads/%s", sRfdNumber))
-    newReference := plumbing.NewSymbolicReference(localRef, remoteRef)
+    //logger.traceLog("Creating various local and remote references ...")
+    //localRef := plumbing.NewBranchReferenceName(fmt.Sprintf("refs/heads/%s", sRfdNumber))
+    //remoteRef := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("refs/heads/%s", sRfdNumber))
+    //newReference := plumbing.NewSymbolicReference(localRef, remoteRef)
 
-    err = r.Storer.SetReference(newReference)
-    CheckFatal(err)
+    //err = r.Storer.SetReference(newReference)
+    //CheckFatal(err)
 
     publicKey, err := getPublicKey()
 

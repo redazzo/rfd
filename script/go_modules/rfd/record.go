@@ -82,7 +82,7 @@ func CreateEntries() error {
 }
 
 func getDirectories() []os.FileInfo {
-	entries, err := ioutil.ReadDir(".")
+	entries, err := ioutil.ReadDir(appConfig.RFDRootDirectory)
 	CheckFatal(err)
 	return entries
 }
