@@ -4,6 +4,7 @@ import (
     "bufio"
     "fmt"
     "github.com/go-git/go-git/v5"
+    "github.com/go-git/go-git/v5/config"
     "github.com/go-git/go-git/v5/plumbing"
     "github.com/go-git/go-git/v5/plumbing/transport/ssh"
     "io/ioutil"
@@ -102,6 +103,16 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
     branches := currentConfig.Branches
 
+    referenceName := plumbing.NewBranchReferenceName("refs/heads/" + formattedRFDNumber)
+
+    newBranch := &config.Branch {
+        Name: formattedRFDNumber,
+        Remote: "origin",
+        Merge: referenceName,
+    }
+
+    branches[formattedRFDNumber] = newBranch
+
     for k, v := range branches {
 
         fmt.Println(k + ":")
@@ -109,8 +120,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
         fmt.Println("    " + v.Remote)
         fmt.Println("    " + v.Rebase)
         fmt.Println("    " + v.Merge)
-
-
+        
     }
 
     return err
