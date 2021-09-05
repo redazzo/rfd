@@ -95,12 +95,12 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
     getUserInput("Pausing")
 
-    // ... checking out to commit
-    logger.traceLog("checking out again")
+    logger.traceLog("Updating upstream references ...")
+    remoteRefName := plumbing.NewRemoteReferenceName("origin", formattedRFDNumber)
+    localRefName := plumbing.NewBranchReferenceName(formattedRFDNumber)
+    newReference := plumbing.NewSymbolicReference(localRefName, remoteRefName)
 
-    err = w.Checkout(&git.CheckoutOptions{
-        Branch: ref.Name(),
-    })
+    err = r.Storer.SetReference(newReference)
     CheckFatal(err)
 
     /*currentConfig, err := r.Config()
