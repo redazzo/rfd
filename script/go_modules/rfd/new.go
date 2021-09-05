@@ -60,23 +60,17 @@ func NewRFD() {
 func createRFD(rfdNumber int, title string, authors string, state string, link string) error {
 
     // Create a directory name that matches nnnn
-    sRfdNumber := strconv.Itoa(rfdNumber)
-
-    strLength := len(sRfdNumber)
-    for strLength < 4 {
-        sRfdNumber = "0" + sRfdNumber
-        strLength++
-    }
+    formattedRFDNumber := formatToNNNN(rfdNumber)
 
     // Branch, write the readme file, stage, commit, and push
-    err, r, w := createBranch(sRfdNumber)
+    err, r, w := createBranch(formattedRFDNumber)
     CheckFatal(err)
 
     logger.traceLog("Creating placeholder readme file, and adding to repository")
-    err, _ = writeReadme(sRfdNumber, title, authors, state, link)
+    err, _ = writeReadme(formattedRFDNumber, title, authors, state, link)
     CheckFatal(err)
 
-    _, err = w.Add(appConfig.RFDRelativeDirectory + "/" + sRfdNumber + "/readme.md")
+    _, err = w.Add(appConfig.RFDRelativeDirectory + "/" + formattedRFDNumber + "/readme.md")
     CheckFatal(err)
 
     logger.traceLog("Committing ...")
@@ -88,20 +82,22 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     currentConfig, err := r.Config()
     CheckFatal(err)
 
-    currentBranch := currentConfig.Branches[sRfdNumber]
+    for k,v := range currentConfig.Branches {
+        println( k + ":" + v.Name)
+    }
+
+    currentBranch := currentConfig.Branches["origin/" + formattedRFDNumber]
     logger.traceLog("Current branch is " + currentBranch.Name)
 
     getUserInput("Pausing")
 
-    currentBranch.Remote = "origin/" + sRfdNumber
+    currentBranch.Remote = "origin/" + formattedRFDNumber
 
     r.SetConfig(currentConfig)
 
-
-
     //logger.traceLog("Creating various local and remote references ...")
-    //localRef := plumbing.NewBranchReferenceName(fmt.Sprintf("refs/heads/%s", sRfdNumber))
-    //remoteRef := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("refs/heads/%s", sRfdNumber))
+    //localRef := plumbing.NewBranchReferenceName(fmt.Sprintf("refs/heads/%s", formattedRFDNumber))
+    //remoteRef := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("refs/heads/%s", formattedRFDNumber))
     //newReference := plumbing.NewSymbolicReference(localRef, remoteRef)
 
     //err = r.Storer.SetReference(newReference)
@@ -110,9 +106,9 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     publicKey, err := getPublicKey()
 
     logger.traceLog("Push to origin ...")
-    err = r.Push( &git.PushOptions{
+    err = r.Push(&git.PushOptions{
         RemoteName: "origin",
-        Auth: publicKey,
+        Auth:       publicKey,
     })
     CheckFatal(err)
 
@@ -137,19 +133,30 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     */
 
     /*sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
-    publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
-    CheckFatal(err)
+      publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+      CheckFatal(err)
 
 
-    logger.traceLog("Push to origin ...")
-    err = r.Push( &git.PushOptions{
-    	RemoteName: "origin",
-    	Auth: publicKey,
-    })
-    CheckFatal(err)
+      logger.traceLog("Push to origin ...")
+      err = r.Push( &git.PushOptions{
+      	RemoteName: "origin",
+      	Auth: publicKey,
+      })
+      CheckFatal(err)
     */
 
     return err
+}
+
+func formatToNNNN(rfdNumber int) string {
+    sRfdNumber := strconv.Itoa(rfdNumber)
+
+    strLength := len(sRfdNumber)
+    for strLength < 4 {
+        sRfdNumber = "0" + sRfdNumber
+        strLength++
+    }
+    return sRfdNumber
 }
 
 func writeReadme(sRfdNumber string, title string, authors string, state string, link string) (error, *os.File) {
