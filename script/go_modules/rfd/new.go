@@ -63,7 +63,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     formattedRFDNumber := formatToNNNN(rfdNumber)
 
     // Branch, write the readme file, stage, commit, and push
-    err, r, w, _ := createBranch(formattedRFDNumber)
+    err, r, w, ref := createBranch(formattedRFDNumber)
     CheckFatal(err)
 
     logger.traceLog("Creating placeholder readme file, and adding to repository")
@@ -95,6 +95,14 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
     getUserInput("Pausing")
 
+    // ... checking out to commit
+    logger.traceLog("checking out again")
+
+    err = w.Checkout(&git.CheckoutOptions{
+        Branch: ref.Name(),
+    })
+    CheckFatal(err)
+
     /*currentConfig, err := r.Config()
     CheckFatal(err)
 
@@ -114,13 +122,14 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
      */
 
-    logger.traceLog("Updating upstream references ...")
-    remoteRefName := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("refs/heads/%s", formattedRFDNumber))
+    /*logger.traceLog("Updating upstream references ...")
+    remoteRefName := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("heads/%s", formattedRFDNumber))
     localRefName := plumbing.NewBranchReferenceName(formattedRFDNumber)
     newReference := plumbing.NewSymbolicReference(localRefName, remoteRefName)
 
     err = r.Storer.SetReference(newReference)
-    CheckFatal(err)
+    CheckFatal(err)*/
+
 
 
 
@@ -407,7 +416,6 @@ func getMaxRemoteBranchId() (error, int) {
     r, err := git.PlainOpen(".")
     CheckFatal(err)
 
-    //url := "git@github.com:redazzo/rfd.git"
     publicKey, err := getPublicKey()
 
     remote, err := r.Remote("origin")
