@@ -113,15 +113,8 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
     branches[formattedRFDNumber] = newBranch
 
-    for k, v := range branches {
-
-        fmt.Println(k + ":")
-        fmt.Println("    " + v.Name)
-        fmt.Println("    " + v.Remote)
-        fmt.Println("    " + v.Rebase)
-        fmt.Println("    " + v.Merge)
-
-    }
+    err = r.Storer.SetConfig(currentConfig)
+    CheckFatal(err)
 
     return err
 }
