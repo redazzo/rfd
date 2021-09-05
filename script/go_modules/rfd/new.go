@@ -103,7 +103,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
     branches := currentConfig.Branches
 
-    referenceName := plumbing.NewBranchReferenceName("refs/heads/" + formattedRFDNumber)
+    referenceName := plumbing.NewBranchReferenceName(formattedRFDNumber)
 
     newBranch := &config.Branch {
         Name: formattedRFDNumber,
@@ -120,7 +120,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
         fmt.Println("    " + v.Remote)
         fmt.Println("    " + v.Rebase)
         fmt.Println("    " + v.Merge)
-        
+
     }
 
     return err
