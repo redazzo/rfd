@@ -85,7 +85,19 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     })
     CheckFatal(err)
 
+    currentConfig, err := r.Config()
+    CheckFatal(err)
+
+    currentBranch := currentConfig.Branches[sRfdNumber]
+    logger.traceLog("Current branch is " + currentBranch.Name)
+
     getUserInput("Pausing")
+
+    currentBranch.Remote = "origin/" + sRfdNumber
+
+    r.SetConfig(currentConfig)
+
+
 
     //logger.traceLog("Creating various local and remote references ...")
     //localRef := plumbing.NewBranchReferenceName(fmt.Sprintf("refs/heads/%s", sRfdNumber))
