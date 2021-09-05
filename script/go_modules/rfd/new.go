@@ -96,7 +96,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     getUserInput("Pausing")
 
     logger.traceLog("Updating upstream references ...")
-    remoteRefName := plumbing.NewRemoteReferenceName("origin", formattedRFDNumber)
+    remoteRefName := plumbing.NewRemoteReferenceName("origin", "refs/heads/" + formattedRFDNumber)
     localRefName := plumbing.NewBranchReferenceName(formattedRFDNumber)
     newReference := plumbing.NewSymbolicReference(localRefName, remoteRefName)
 
