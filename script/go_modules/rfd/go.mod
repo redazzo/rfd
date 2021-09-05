@@ -1,4 +1,4 @@
-module rfd.kessellhaak.dev/process/rfd
+module github.com/rfd/script/go_modules/rfd
 
 go 1.15
 
@@ -8,5 +8,4 @@ require (
 	github.com/yuin/goldmark v1.3.5 //ct
 	github.com/yuin/goldmark-meta v1.0.0
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
-//github.com/go-git/go-git/v5
 )
