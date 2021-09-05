@@ -83,7 +83,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
     publicKey, err := getPublicKey()
 
-    logger.traceLog("Push to origin ...")
+    logger.traceLog("Pushing to origin ...")
     err = r.Push(&git.PushOptions{
         RemoteName: "origin",
         Auth:   publicKey,
@@ -91,17 +91,19 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     })
     CheckFatal(err)
 
-    logger.traceLog("Pushed to origin ...")
+    logger.traceLog("Pushed to origin")
 
     getUserInput("Pausing")
 
-    logger.traceLog("Updating upstream references ...")
-    remoteRefName := plumbing.NewRemoteReferenceName("origin", "refs/heads/" + formattedRFDNumber)
-    localRefName := plumbing.NewBranchReferenceName(formattedRFDNumber)
-    newReference := plumbing.NewSymbolicReference(localRefName, remoteRefName)
-    
-    err = r.Storer.SetReference(newReference)
-    CheckFatal(err)
+    //logger.traceLog("Updating upstream references ...")
+
+
+    //remoteRefName := plumbing.NewRemoteReferenceName("origin", "refs/heads/" + formattedRFDNumber)
+    //localRefName := plumbing.NewBranchReferenceName(formattedRFDNumber)
+    //newReference := plumbing.NewSymbolicReference(localRefName, remoteRefName)
+
+    //err = r.Storer.SetReference(newReference)
+    //CheckFatal(err)
 
     /*currentConfig, err := r.Config()
     CheckFatal(err)
@@ -248,9 +250,7 @@ func createBranch3(branchName string) (error, *git.Repository, *git.Worktree) {
     return err, r, w
 }
 
-func createBranch2(rfdNumber string) (error, *git.Repository, *git.Worktree) {
-
-    logger.traceLog("Creating branch ...")
+func trackUpstream(rfdNumber string) error {
 
     r, err := git.PlainOpen(".")
     CheckFatal(err)
@@ -276,9 +276,9 @@ func createBranch2(rfdNumber string) (error, *git.Repository, *git.Worktree) {
     err = r.Storer.SetReference(plumbing.NewHashReference(localRef, ref.Hash()))
     CheckFatal(err)
 
-    w, err := r.Worktree()
+    //w, err := r.Worktree()
 
-    return err, r, w
+    return err
 }
 
 func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree, *plumbing.Reference) {
