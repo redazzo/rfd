@@ -59,17 +59,19 @@ func NewRFD() {
 
 func createRFD(rfdNumber int, title string, authors string, state string, link string) error {
 
-    // Create a directory name that matches nnnn
+    // Format the number to match nnnn
     formattedRFDNumber := formatToNNNN(rfdNumber)
 
-    // Branch, write the readme file, stage, commit, and push
+    // Branch, write the readme file, stage, commit, push, and set upstream
+
+    // Create a branch named as per "nnnn"
     err, r, w, _ := createBranch(formattedRFDNumber)
     CheckFatal(err)
 
-    logger.traceLog("Creating placeholder readme file, and adding to repository")
     err, _ = writeReadme(formattedRFDNumber, title, authors, state, link)
     CheckFatal(err)
 
+    // State and commit
     _, err = w.Add(appConfig.RFDRelativeDirectory + "/" + formattedRFDNumber + "/readme.md")
     CheckFatal(err)
 
@@ -79,24 +81,33 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     })
     CheckFatal(err)
 
-    getUserInput("Pausing")
+    // Push to origin and set upstream
+    err = pushToOrigin(r)
 
+    err = setUpstream(r, formattedRFDNumber)
+
+    return err
+}
+
+func pushToOrigin(r *git.Repository) error {
+    logger.traceLog("Pushing to origin ...")
     publicKey, err := getPublicKey()
 
-    logger.traceLog("Pushing to origin ...")
     err = r.Push(&git.PushOptions{
         RemoteName: "origin",
-        Auth:   publicKey,
-        Force:  true,
+        Auth:       publicKey,
+        Force:      true,
     })
     CheckFatal(err)
 
     logger.traceLog("Pushed to origin")
+    return err
+}
 
-
-
+func setUpstream(r *git.Repository, formattedRFDNumber string) error {
     logger.traceLog("Setting upstream ...")
-    r, err = git.PlainOpen(".")
+
+    r, err := git.PlainOpen(".")
     CheckFatal(err)
     currentConfig, err := r.Config()
     CheckFatal(err)
@@ -105,10 +116,10 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
     referenceName := plumbing.NewBranchReferenceName(formattedRFDNumber)
 
-    newBranch := &config.Branch {
-        Name: formattedRFDNumber,
+    newBranch := &config.Branch{
+        Name:   formattedRFDNumber,
         Remote: "origin",
-        Merge: referenceName,
+        Merge:  referenceName,
     }
 
     branches[formattedRFDNumber] = newBranch
@@ -116,6 +127,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     err = r.Storer.SetConfig(currentConfig)
     CheckFatal(err)
 
+    logger.traceLog("Upstream set to " + formattedRFDNumber)
     return err
 }
 
@@ -131,6 +143,7 @@ func formatToNNNN(rfdNumber int) string {
 }
 
 func writeReadme(sRfdNumber string, title string, authors string, state string, link string) (error, *os.File) {
+    logger.traceLog("Creating placeholder readme file, and adding to repository")
     // Create readme.md file with template @ template/readme.md
     metadata := RFDMetadata{
         sRfdNumber,
