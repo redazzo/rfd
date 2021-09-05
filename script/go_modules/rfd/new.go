@@ -63,7 +63,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     formattedRFDNumber := formatToNNNN(rfdNumber)
 
     // Branch, write the readme file, stage, commit, and push
-    err, r, w := createBranch(formattedRFDNumber)
+    err, r, w, branchRef := createBranch(formattedRFDNumber)
     CheckFatal(err)
 
     logger.traceLog("Creating placeholder readme file, and adding to repository")
@@ -79,10 +79,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     })
     CheckFatal(err)
 
-    // Fetch latest repository
-    r, err = git.PlainOpen(".")
-
-    currentConfig, err := r.Config()
+    /*currentConfig, err := r.Config()
     CheckFatal(err)
 
     for k,v := range currentConfig.Branches {
@@ -94,26 +91,27 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
     getUserInput("Pausing")
 
-    currentBranch.Remote = "origin/" + formattedRFDNumber
+    //currentBranch.Remote = "origin/" + formattedRFDNumber
 
-    r.SetConfig(currentConfig)
+    //r.SetConfig(currentConfig)
 
-    //logger.traceLog("Creating various local and remote references ...")
-    //localRef := plumbing.NewBranchReferenceName(fmt.Sprintf("refs/heads/%s", formattedRFDNumber))
-    //remoteRef := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("refs/heads/%s", formattedRFDNumber))
-    //newReference := plumbing.NewSymbolicReference(localRef, remoteRef)
 
-    //err = r.Storer.SetReference(newReference)
-    //CheckFatal(err)
+     */
 
-    publicKey, err := getPublicKey()
+    remoteRefName := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("refs/heads/%s", formattedRFDNumber))
+    newReference := plumbing.NewSymbolicReference(branchRef.Name(), remoteRefName)
+
+    err = r.Storer.SetReference(newReference)
+    CheckFatal(err)
+
+    /*publicKey, err := getPublicKey()
 
     logger.traceLog("Push to origin ...")
     err = r.Push(&git.PushOptions{
         RemoteName: "origin",
         Auth:       publicKey,
     })
-    CheckFatal(err)
+    CheckFatal(err)*/
 
     /*
 
@@ -263,7 +261,7 @@ func createBranch2(rfdNumber string) (error, *git.Repository, *git.Worktree) {
     return err, r, w
 }
 
-func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree) {
+func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree, *plumbing.Reference) {
 
     r, err := git.PlainOpen(".")
     CheckFatal(err)
@@ -295,7 +293,7 @@ func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree) {
     })
     CheckFatal(err)
 
-    return err, r, w
+    return err, r, w, ref
 }
 
 func getMaxRFDNumber() int {
