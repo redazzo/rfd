@@ -63,7 +63,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     formattedRFDNumber := formatToNNNN(rfdNumber)
 
     // Branch, write the readme file, stage, commit, and push
-    err, r, w, ref := createBranch(formattedRFDNumber)
+    err, r, w, _ := createBranch(formattedRFDNumber)
     CheckFatal(err)
 
     logger.traceLog("Creating placeholder readme file, and adding to repository")
