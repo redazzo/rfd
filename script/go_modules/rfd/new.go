@@ -104,7 +104,13 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
     for k, v := range branches {
 
-        fmt.Println(k + ":" + v.Name)
+        fmt.Println(k + ":")
+        fmt.Println("    " + v.Name)
+        fmt.Println("    " + v.Remote)
+        fmt.Println("    " + v.Rebase)
+        fmt.Println("    " + v.Merge)
+
+
     }
 
     return err
