@@ -89,7 +89,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     currentBranch := currentConfig.Branches[formattedRFDNumber]
     logger.traceLog("Current branch is " + currentBranch.Name)
 
-    getUserInput("Pausing")
+
 
     //currentBranch.Remote = "origin/" + formattedRFDNumber
 
@@ -98,20 +98,23 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
      */
 
-    remoteRefName := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("refs/heads/%s", formattedRFDNumber))
-    newReference := plumbing.NewSymbolicReference(branchRef.Name(), remoteRefName)
+    //remoteRefName := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("refs/heads/%s", formattedRFDNumber))
+    //newReference := plumbing.NewSymbolicReference(branchRef.Name(), remoteRefName)
 
-    err = r.Storer.SetReference(newReference)
-    CheckFatal(err)
+    //err = r.Storer.SetReference(newReference)
+    //CheckFatal(err)
 
-    /*publicKey, err := getPublicKey()
+    getUserInput("Pausing")
+    
+    publicKey, err := getPublicKey()
 
     logger.traceLog("Push to origin ...")
     err = r.Push(&git.PushOptions{
         RemoteName: "origin",
-        Auth:       publicKey,
+        Auth:   publicKey,
+        Force:  true,
     })
-    CheckFatal(err)*/
+    CheckFatal(err)
 
     /*
 
