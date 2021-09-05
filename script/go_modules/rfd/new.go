@@ -90,6 +90,73 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
         Force:  true,
     })
     CheckFatal(err)
+
+    logger.traceLog("Pushed to origin ...")
+
+    getUserInput("Pausing")
+
+    /*currentConfig, err := r.Config()
+    CheckFatal(err)
+
+    for k,v := range currentConfig.Branches {
+        println( k + ":" + v.Name)
+    }
+
+    currentBranch := currentConfig.Branches[formattedRFDNumber]
+    logger.traceLog("Current branch is " + currentBranch.Name)
+
+
+
+    //currentBranch.Remote = "origin/" + formattedRFDNumber
+
+    //r.SetConfig(currentConfig)
+
+
+     */
+
+    logger.traceLog("Updating upstream references ...")
+    remoteRefName := plumbing.NewRemoteReferenceName("origin", fmt.Sprintf("refs/heads/%s", formattedRFDNumber))
+    localRefName := plumbing.NewBranchReferenceName(formattedRFDNumber)
+    newReference := plumbing.NewSymbolicReference(localRefName, remoteRefName)
+
+    err = r.Storer.SetReference(newReference)
+    CheckFatal(err)
+
+
+
+    /*
+
+    	//url := "git@github.com:redazzo/rfd.git"
+    		//sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+    		//publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+    		//CheckFatal(err)
+
+    		//remote, err := r.Remote("origin")
+    		//CheckFatal(err)
+
+    		/*ref, err := r.Head()
+    			Name:   "rfdNumber",
+    			Remote: "origin",
+    			Merge:  ref.Name(),
+    		}
+    		err = r.CreateBranch(newBranch)
+    		r.CreateBranch()
+
+    */
+
+    /*sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+      publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+      CheckFatal(err)
+
+
+      logger.traceLog("Push to origin ...")
+      err = r.Push( &git.PushOptions{
+      	RemoteName: "origin",
+      	Auth: publicKey,
+      })
+      CheckFatal(err)
+    */
+
     return err
 }
 
@@ -168,6 +235,39 @@ func createBranch3(branchName string) (error, *git.Repository, *git.Worktree) {
 
     err = r.Storer.SetReference(newReference)
     CheckFatal(err)
+
+    return err, r, w
+}
+
+func createBranch2(rfdNumber string) (error, *git.Repository, *git.Worktree) {
+
+    logger.traceLog("Creating branch ...")
+
+    r, err := git.PlainOpen(".")
+    CheckFatal(err)
+
+    // we want to create a branch 'nnnn' that'd track origin/master
+    var branchName, remote, remoteBranch = rfdNumber, "origin", rfdNumber
+
+    // we resolve origin/master to a hash
+    var remoteRef = plumbing.NewRemoteReferenceName(remote, remoteBranch)
+    ref, err := r.Reference(remoteRef, true)
+    CheckFatal(err)
+
+    // create a new "tracking appConfig"
+    var mergeRef = plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", remoteBranch))
+
+
+    branchConfig := &config.Branch{Name: branchName, Remote: remote, Merge: mergeRef}
+    err = r.CreateBranch(branchConfig)
+    CheckFatal(err)
+
+    // and finally create an "actual branch"
+    var localRef = plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", branchName))
+    err = r.Storer.SetReference(plumbing.NewHashReference(localRef, ref.Hash()))
+    CheckFatal(err)
+
+    w, err := r.Worktree()
 
     return err, r, w
 }
