@@ -1,4 +1,4 @@
-module github.com/rfd/script/go_modules/rfd
+module github.com/redazzo/rfd/script/go_modules/rfd/v0.1.0
 
 go 1.15
 
