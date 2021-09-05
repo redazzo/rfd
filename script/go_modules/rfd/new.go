@@ -99,7 +99,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     remoteRefName := plumbing.NewRemoteReferenceName("origin", "refs/heads/" + formattedRFDNumber)
     localRefName := plumbing.NewBranchReferenceName(formattedRFDNumber)
     newReference := plumbing.NewSymbolicReference(localRefName, remoteRefName)
-
+    
     err = r.Storer.SetReference(newReference)
     CheckFatal(err)
 
