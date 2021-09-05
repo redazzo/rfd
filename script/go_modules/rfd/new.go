@@ -79,6 +79,9 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
     })
     CheckFatal(err)
 
+    // Fetch latest repository
+    r, err = git.PlainOpen(".")
+
     currentConfig, err := r.Config()
     CheckFatal(err)
 
