@@ -89,7 +89,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
         println( k + ":" + v.Name)
     }
 
-    currentBranch := currentConfig.Branches["origin/" + formattedRFDNumber]
+    currentBranch := currentConfig.Branches[formattedRFDNumber]
     logger.traceLog("Current branch is " + currentBranch.Name)
 
     getUserInput("Pausing")
