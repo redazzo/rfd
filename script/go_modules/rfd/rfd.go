@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-var logger Trace = TraceLog{}
+var logger Trace
 var appConfig *configuration
 
 type configuration struct {
@@ -15,7 +15,9 @@ type configuration struct {
 	RFDRelativeDirectory string `yaml:"rfd-relative-directory"`
 }
 
-
+func init() {
+	logger = TraceLog{}
+}
 
 func main() {
 
@@ -32,7 +34,7 @@ func createCommandLineApp() *cli.App {
 		Usage: "Create new rfd's, index and output their status, and manage their .",
 		Commands: []*cli.Command{
 			{
-				Name:     "update-status",
+				Name:     "index",
 				Category: "Information",
 				Usage:    "Output the status of all rfd's to `FILE` in markdown format.",
 				Action: func(c *cli.Context) error {

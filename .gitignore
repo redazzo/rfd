@@ -20,3 +20,4 @@ script/go_modules/rfd/.idea/rfd.iml
 script/go_modules/rfd/.idea/.gitignore
 script/go_modules/rfd/.idea/vcs.xml
 script/go_modules/rfd/.idea/codeStyles/codeStyleConfig.xml
+/script/go_modules/.idea/

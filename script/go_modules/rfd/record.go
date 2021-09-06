@@ -74,7 +74,7 @@ func getDirectories() []os.FileInfo {
 }
 
 func openMetadataTableFile() *os.File {
-	mdTableFile, err := os.Create("record.md")
+	mdTableFile, err := os.Create(appConfig.RFDRootDirectory + "/index.md")
 	CheckFatal(err)
 
 	_, err = mdTableFile.WriteString("**Record of Merged Requests for Discussion**\n\n")
