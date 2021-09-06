@@ -10,8 +10,8 @@ var logger Trace
 var appConfig *configuration
 
 type configuration struct {
-	RFDRootDirectory string `yaml:"rfd-root-directory"`
-	InstallDirectory string `yaml:"install-directory"`
+	RFDRootDirectory     string `yaml:"rfd-root-directory"`
+	InstallDirectory     string `yaml:"install-directory"`
 	RFDRelativeDirectory string `yaml:"rfd-relative-directory"`
 }
 
@@ -34,11 +34,11 @@ func createCommandLineApp() *cli.App {
 		Usage: "Create new rfd's, index and output their status, and manage their .",
 		Commands: []*cli.Command{
 			{
-				Name:     "index",
-				Category: "Information",
-				Usage:    "Output the status of all rfd's to `FILE` in markdown format.",
+				Name:  "index",
+				Usage: "Output the status of all rfd's to `FILE` in markdown format.",
 				Action: func(c *cli.Context) error {
-					return CreateEntries()
+					CreateEntries()
+					return nil
 				},
 			},
 			{

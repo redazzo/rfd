@@ -1,8 +1,8 @@
 ---
 title: EPL Request for Discussion Process
-authors: Gerry Kessell-Haak <gerry.kessellhaak@edpay.nz>, Bob
+authors: Gerry Kessell-Haak
 state: implementing
-discussion: <link to discussion>
+discussion: theLink
 ---
 # RFD0001: The EPL Request for Discussion Process
 
