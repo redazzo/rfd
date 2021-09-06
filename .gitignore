@@ -12,7 +12,6 @@ script/go_modules/mkrfd/.idea/.gitignore
 script/go_modules/mkrfd/.idea/mkrfd.iml
 script/go_modules/mkrfd/.idea/modules.xml
 script/go_modules/mkrfd/.idea/vcs.xml
-script/go_modules/rfd/record.md
 script/go_modules/rfd/rfd
 script/go_modules/rfd/rfd.exe
 script/go_modules/rfd/.idea/modules.xml
