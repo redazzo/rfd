@@ -28,6 +28,7 @@ func main() {
 
 }
 
+//
 func createCommandLineApp() *cli.App {
 	app := &cli.App{
 		Name:  "rfd",
