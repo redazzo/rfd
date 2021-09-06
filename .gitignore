@@ -21,3 +21,4 @@ script/go_modules/rfd/.idea/.gitignore
 script/go_modules/rfd/.idea/vcs.xml
 script/go_modules/rfd/.idea/codeStyles/codeStyleConfig.xml
 /script/go_modules/.idea/
+/script/test/index.md
