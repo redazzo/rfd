@@ -1,13 +1,22 @@
 package main
 
 import (
+	"encoding/base64"
+	"fmt"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 	"os"
+	"runtime"
 )
+
+const HOME 		string = "HOME"
+const HOMEDRIVE string = "HOMEDRIVE"
+const HOMEPATH 	string = "HOMEPATH"
+
 
 var logger Trace
 var appConfig *configuration
+var sshDir string
 
 type configuration struct {
 	RFDRootDirectory     string `yaml:"rfd-root-directory"`
@@ -17,15 +26,14 @@ type configuration struct {
 
 func init() {
 	logger = TraceLog{}
+	appConfig = populateConfig()
+	initSSHDIR()
 }
 
 func main() {
-
-	appConfig = populateConfig()
 	app := createCommandLineApp()
 	err := app.Run(os.Args)
 	CheckFatal(err)
-
 }
 
 //
@@ -35,10 +43,10 @@ func createCommandLineApp() *cli.App {
 		Usage: "Create new rfd's, index and output their status, and manage their .",
 		Commands: []*cli.Command{
 			{
-				Name:  "index",
-				Usage: "Output the status of all rfd's to `FILE` in markdown format.",
+				Name:  "create-index",
+				Usage: "Output the status of all rfd's to index.md in markdown format.",
 				Action: func(c *cli.Context) error {
-					CreateEntries()
+					Index()
 					return nil
 				},
 			},
@@ -46,42 +54,33 @@ func createCommandLineApp() *cli.App {
 				Name:  "new",
 				Usage: "Create a new rfd",
 				Action: func(c *cli.Context) error {
-					NewRFD()
+					New()
 					return nil
 				},
-				Subcommands: []*cli.Command{
-					{
-						Name: "repository",
-						Action: func(c *cli.Context) error {
-							return nil
-						},
-					},
+			},
+			{
+				Name:  "show-status",
+				Usage: "Displays the status of <nnnn>. Will output the status of every RFD if it isn't provided an RFD ID.",
+				Action: func(c *cli.Context) error {
+					return nil
+				},
+			},
+			{
+				Name:  "init",
+				Usage: "Displays the status of <nnnn>. Will output the status of every RFD if it isn't provided an RFD ID.",
+				Action: func(c *cli.Context) error {
+					return nil
+				},
+			},
+			{
+				Name:  "environment",
+				Usage: "Displays configuration settings and relevant operating system environment variables.",
+				Action: func(c *cli.Context) error {
+					displayEnvironment()
+					return nil
 				},
 			},
 		},
-		/*Flags: []cli.Flag {
-			&cli.StringFlag{
-				Name: "status",
-				Aliases: []string{"s"},
-				Usage: "Output the status of all rfd's to `FILE` in markdown format.",
-				Value: "status.md",
-				DefaultText: "status.md",
-			},
-			&cli.StringFlag{
-				Name: "create",
-				Aliases: []string{"c"},
-				Usage: "Create a new rfd, with an optionally specified `RFD ID` in nnnn format",
-			},
-		},
-		Action: func(c *cli.Context) error {
-			//fmt.Println("rfd %q", c.Args().Get(0))
-			if c.NArg() > 0 {
-
-			} else {
-				fmt.Println("")
-			}
-			return nil
-		},*/
 	}
 
 	cli.AppHelpTemplate = `NAME:
@@ -107,6 +106,42 @@ VERSION:
 	return app
 }
 
+func initSSHDIR() {
+	operatingSystem := runtime.GOOS
+	switch operatingSystem {
+	case "windows":
+		sshDir = os.Getenv(HOMEDRIVE) + os.Getenv(HOMEPATH)
+	case "linux":
+		sshDir = os.Getenv(HOME)
+	}
+}
+
+func displayEnvironment() {
+	operatingSystem := runtime.GOOS
+	fmt.Println(operatingSystem)
+	switch operatingSystem {
+	case "windows":
+		fmt.Println("HOMEDRIVE=" + os.Getenv(HOMEDRIVE))
+		fmt.Println("HOMEPATH =" + os.Getenv(HOMEPATH))
+	case "linux":
+		fmt.Println("HOME=" + os.Getenv(HOME))
+	}
+	fmt.Println("RFD root directory=" + appConfig.RFDRootDirectory)
+	fmt.Println("RFD relative directory=" + appConfig.RFDRelativeDirectory)
+	fmt.Println("Installation directory=" + appConfig.InstallDirectory)
+
+	publicKey, err := getPublicKey()
+	CheckFatal(err)
+
+	bytes := publicKey.Signer.PublicKey().Marshal()
+
+	sPublicKey := base64.StdEncoding.EncodeToString(bytes) + " " + publicKey.User
+	CheckFatal(err)
+
+	fmt.Println("SSH Public Key=" + sPublicKey)
+}
+
+
 func populateConfig() *configuration {
 	// Create appConfig structure
 	config := &configuration{}
@@ -114,6 +149,7 @@ func populateConfig() *configuration {
 	// Open appConfig file
 	file, err := os.Open("./config.yml")
 	CheckFatal(err)
+
 
 	defer file.Close()
 

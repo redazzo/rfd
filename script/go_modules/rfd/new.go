@@ -17,10 +17,10 @@ import (
 /*
 	An RFD can be in one of two branch states:
 		1. Newly created, or still being updated and not yet ready for mainlining into the trunk. In this case
-		   there won't yet be an separate RFD directory in the trunk. Instead there will be a branch called nnnn,
+		   there won't yet be a separate RFD directory in the trunk. Instead there will be a branch called nnnn,
 		   where nnnn is a 4-digit number. On this branch there will be a directory called /nnnn, and a readme.md file
 		   located at /nnnn/readme.md
-		2. Trunk - the nnnn branch will have been merged into the trunk (master).
+		2. Mainlined - the nnnn branch will have been merged into the trunk (master), with status set to accepted (or beyond e.g. committed).
 
 		To create a new RFD:
 		1. Fetch all branches that match nnnn naming format, and keep a record of the greatest nnnn
@@ -38,7 +38,7 @@ type RFDMetadata struct {
     Link    string
 }
 
-func NewRFD() {
+func New() {
     logger.traceLog("Creating new RFD")
 
     newRFDNumber := getMaxRFDNumber() + 1
@@ -346,7 +346,8 @@ func getMaxRemoteBranchId() (error, int) {
 }
 
 func getPublicKey() (*ssh.PublicKeys, error) {
-    sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+    sPathseparator := string(os.PathSeparator)
+    sshPath := sshDir + sPathseparator + ".ssh" + sPathseparator + "id_rsa"
     publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
     CheckFatal(err)
     return publicKey, err

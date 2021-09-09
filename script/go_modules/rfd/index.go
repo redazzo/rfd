@@ -12,7 +12,7 @@ import (
 	"github.com/yuin/goldmark/parser"
 )
 
-func CreateEntries() error {
+func Index() error {
 
 	logger.traceLog("Creating new entries ...")
 
