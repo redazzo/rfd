@@ -349,6 +349,10 @@ func getPublicKey() (*ssh.PublicKeys, error) {
     sPathseparator := string(os.PathSeparator)
     sshPath := sshDir + sPathseparator + ".ssh" + sPathseparator + "id_rsa"
     publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+    if err != nil {
+        sshPath = sshDir + sPathseparator + ".ssh" + sPathseparator + "id_ed25519.pub"
+        publicKey, err = ssh.NewPublicKeysFromFile("git", sshPath, "")
+    }
     CheckFatal(err)
     return publicKey, err
 }

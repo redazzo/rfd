@@ -1,6 +1,6 @@
 rfd-root-directory: /home/redazzo/project/RFD/script/test
 rfd-relative-directory: script/test
-install-directory: /home/redazzo/project/RFD
+install-directory: /home/redazzo/project/RFD/bin
 
 rfd-states:
   - ideation
