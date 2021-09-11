@@ -1,6 +1,7 @@
 rfd-root-directory: /home/redazzo/project/RFD/script/test
 rfd-relative-directory: script/test
 install-directory: /home/redazzo/project/RFD/bin
+public-key-file-name: id_rsa #id_ed25519.pub
 
 rfd-states:
   - ideation

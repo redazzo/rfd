@@ -9,10 +9,9 @@ import (
 	"runtime"
 )
 
-const HOME 		string = "HOME"
+const HOME string = "HOME"
 const HOMEDRIVE string = "HOMEDRIVE"
-const HOMEPATH 	string = "HOMEPATH"
-
+const HOMEPATH string = "HOMEPATH"
 
 var logger Trace
 var appConfig *configuration
@@ -22,6 +21,7 @@ type configuration struct {
 	RFDRootDirectory     string `yaml:"rfd-root-directory"`
 	InstallDirectory     string `yaml:"install-directory"`
 	RFDRelativeDirectory string `yaml:"rfd-relative-directory"`
+	PublicKeyFileName    string `yaml:"public-key-file-name"`
 }
 
 func init() {
@@ -141,7 +141,6 @@ func displayEnvironment() {
 	fmt.Println("SSH Public Key=" + sPublicKey)
 }
 
-
 func populateConfig() *configuration {
 	// Create appConfig structure
 	config := &configuration{}
@@ -149,7 +148,6 @@ func populateConfig() *configuration {
 	// Open appConfig file
 	file, err := os.Open("./config.yml")
 	CheckFatal(err)
-
 
 	defer file.Close()
 

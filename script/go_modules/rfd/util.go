@@ -1,7 +1,9 @@
 package main
 
 import (
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"log"
+	"os"
 	"regexp"
 	"runtime/debug"
 )
@@ -30,4 +32,11 @@ func (t TraceLog) traceLog(msg string) {
 func isRFDIDFormat(name string) (bool, error) {
 	entryIsBranchID, err := regexp.MatchString(`(^\d{4}).*`, name)
 	return entryIsBranchID, err
+}
+
+func getPublicKey() (*ssh.PublicKeys, error) {
+	sPathseparator := string(os.PathSeparator)
+	sshPath := sshDir + sPathseparator + ".ssh" + sPathseparator + appConfig.PublicKeyFileName
+	publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
+	return publicKey, err
 }
