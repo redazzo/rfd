@@ -21,7 +21,7 @@ type configuration struct {
 	RFDRootDirectory     string `yaml:"rfd-root-directory"`
 	InstallDirectory     string `yaml:"install-directory"`
 	RFDRelativeDirectory string `yaml:"rfd-relative-directory"`
-	PublicKeyFileName    string `yaml:"public-key-file-name"`
+	PrivateKeyFileName   string `yaml:"private-key-file-name"`
 }
 
 func init() {
@@ -129,6 +129,7 @@ func displayEnvironment() {
 	fmt.Println("RFD root directory=" + appConfig.RFDRootDirectory)
 	fmt.Println("RFD relative directory=" + appConfig.RFDRelativeDirectory)
 	fmt.Println("Installation directory=" + appConfig.InstallDirectory)
+	fmt.Println("SSH public key directory=" + getSSHPath())
 
 	publicKey, err := getPublicKey()
 	CheckFatal(err)

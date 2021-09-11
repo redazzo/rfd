@@ -35,8 +35,13 @@ func isRFDIDFormat(name string) (bool, error) {
 }
 
 func getPublicKey() (*ssh.PublicKeys, error) {
-	sPathseparator := string(os.PathSeparator)
-	sshPath := sshDir + sPathseparator + ".ssh" + sPathseparator + appConfig.PublicKeyFileName
+	sshPath := getSSHPath()
 	publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
 	return publicKey, err
+}
+
+func getSSHPath() string {
+	sPathseparator := string(os.PathSeparator)
+	sshPath := sshDir + sPathseparator + ".ssh" + sPathseparator + appConfig.PrivateKeyFileName
+	return sshPath
 }

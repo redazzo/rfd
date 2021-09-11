@@ -22,10 +22,11 @@ import (
 		2. Mainlined - the nnnn branch will have been merged into the trunk (master), with status set to accepted (or beyond e.g. committed).
 
 		To create a new RFD:
-		1. Fetch all branches that match nnnn naming format, and keep a record of the greatest nnnn
-		2. Fetch all directories on the trunk that match nnnn naming format, and compare with prior greatest nnnn and keep a record of the highest nnnn.
-		3. Create a branch nnnn+1 --> mmmm
-		4. Create a readme.md file --> mmmm\readme.md
+		1. Fetch all local branches that match nnnn naming format, and keep a record of the greatest as L
+		2. Fetch all remote branches that match nnnn naming format, and keep a record of the greatest as R
+		3. Fetch all directories on the trunk that match nnnn naming format, and keep a record of the greatest as D
+		4. Find max(L, R, D), and create a branch max(L, R, D)+1 --> mmmm
+		5. Create a readme.md file --> mmmm\readme.md
 
 */
 
