@@ -18,6 +18,7 @@ const HOMEPATH string = "HOMEPATH"
 
 var sshDir string
 var templateFileLocation string
+var sPathseparator string
 
 var logger Trace
 var appConfig *configuration
@@ -40,6 +41,8 @@ type configuration struct {
 }
 
 func init() {
+
+	sPathseparator = string(os.PathSeparator)
 
 	rollbackFunctions = append(rollbackFunctions, undoCreateReadme)
 	rollbackFunctions = append(rollbackFunctions, undoCreateBranch)
@@ -159,7 +162,7 @@ func initSSHDIR() {
 }
 
 func initTemplateFileLocation() {
-	templateFileLocation = appConfig.InstallDirectory + "/template/readme.md"
+	templateFileLocation = appConfig.InstallDirectory + sPathseparator + "template" + sPathseparator + "readme.md"
 }
 
 func displayEnvironment() {

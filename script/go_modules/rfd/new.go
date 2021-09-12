@@ -72,7 +72,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	CheckFatal(err)
 
 	// State and commit
-	_, err = w.Add(appConfig.RFDRelativeDirectory + "/" + formattedRFDNumber + "/readme.md")
+	_, err = w.Add(appConfig.RFDRelativeDirectory + sPathseparator + formattedRFDNumber + sPathseparator + "readme.md")
 	CheckFatal(err)
 
 	logger.traceLog("Committing ...")
@@ -167,7 +167,7 @@ func createReadme(sRfdNumber string, title string, authors string, state string,
 
 	// Write out new readme.md to nnnn/readme.md
 	// Status on readme.md will be set to "prediscussion"
-	fReadme, err := os.Create(getRFDDirectory(sRfdNumber) + "/readme.md")
+	fReadme, err := os.Create(getRFDDirectory(sRfdNumber) + sPathseparator + "readme.md")
 	CheckFatal(err)
 	defer fReadme.Close()
 
