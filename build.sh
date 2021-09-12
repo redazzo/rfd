@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+
 function doWindowsBuild() {
   echo "Building Windows ..."
   GOOS=windows
