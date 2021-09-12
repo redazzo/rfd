@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/urfave/cli/v2"
@@ -49,7 +50,6 @@ func init() {
 	initTemplateFileLocation()
 
 	err := checkConfig()
-
 	CheckFatal(err)
 }
 
@@ -69,7 +69,7 @@ func createCommandLineApp() *cli.App {
 				Name:  "check",
 				Usage: "Check environment is suitable to ensure a clean run of 'rfd new'",
 				Action: func(c *cli.Context) error {
-					checkConfig()
+					checkGitStatus()
 					return nil
 				},
 			},
@@ -85,6 +85,8 @@ func createCommandLineApp() *cli.App {
 				Name:  "new",
 				Usage: "Create a new rfd",
 				Action: func(c *cli.Context) error {
+					err := checkGitStatus()
+					CheckFatal(err)
 					New()
 					return nil
 				},
@@ -210,16 +212,21 @@ func checkConfig() error {
 	// Check location of template file is correct
 	_, err := ioutil.ReadFile(templateFileLocation)
 	if err != nil {
-		fmt.Println("Can't read readme template file. Are you sure the configuration is correct?")
+		fmt.Println("Can't read readme template file. Are you sure the configuration is correct?\n")
 	}
 
+	return err
+}
+
+func checkGitStatus() error {
 	// Check to ensure git status is clean.
 	r, err := git.PlainOpen(".")
 	CheckFatal(err)
 
 	w, err := r.Worktree()
 	status, err := w.Status()
-	fmt.Println(status.String())
 
-	return err
+	fmt.Println(status.IsClean())
+
+	return errors.New(status.String())
 }
