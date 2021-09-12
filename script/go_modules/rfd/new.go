@@ -68,7 +68,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	err, r, w, _ := createBranch(formattedRFDNumber)
 	CheckFatal(err)
 
-	err, _ = writeReadme(formattedRFDNumber, title, authors, state, link)
+	err, _ = createReadme(formattedRFDNumber, title, authors, state, link)
 	CheckFatal(err)
 
 	// State and commit
@@ -142,7 +142,10 @@ func formatToNNNN(rfdNumber int) string {
 	return sRfdNumber
 }
 
-func writeReadme(sRfdNumber string, title string, authors string, state string, link string) (error, *os.File) {
+func createReadme(sRfdNumber string, title string, authors string, state string, link string) (error, *os.File) {
+
+	rollbackFunctions = append(rollbackFunctions, undoCreateReadme)
+
 	logger.traceLog("Creating placeholder readme file, and adding to repository")
 	// Create readme.md file with template @ template/readme.md
 	metadata := RFDMetadata{
@@ -153,7 +156,7 @@ func writeReadme(sRfdNumber string, title string, authors string, state string, 
 		link,
 	}
 
-	bTemplate, err := ioutil.ReadFile(appConfig.InstallDirectory + "/template/readme.md")
+	bTemplate, err := ioutil.ReadFile(templateFileLocation)
 	CheckFatal(err)
 	sTemplate := string(bTemplate)
 	tmpl, err := template.New("test").Parse(sTemplate)
@@ -174,11 +177,19 @@ func writeReadme(sRfdNumber string, title string, authors string, state string, 
 	return err, fReadme
 }
 
+func undoCreateReadme() {
+
+	fmt.Println("Called undoCreateReadme - but I'm empty :(")
+
+}
+
 func getRFDDirectory(sRfdNumber string) string {
 	return appConfig.RFDRootDirectory + "/" + sRfdNumber
 }
 
 func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree, *plumbing.Reference) {
+
+	rollbackFunctions = append(rollbackFunctions, undoCreateBranch)
 
 	r, err := git.PlainOpen(".")
 	CheckFatal(err)
@@ -211,6 +222,11 @@ func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree, *plu
 	CheckFatal(err)
 
 	return err, r, w, ref
+}
+
+func undoCreateBranch() {
+	fmt.Println("Called undoCreateBranch - but I'm empty :(")
+
 }
 
 func getMaxRFDNumber() int {

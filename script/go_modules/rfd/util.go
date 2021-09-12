@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"log"
 	"os"
@@ -18,8 +19,15 @@ type TraceLog struct {
 }
 
 func CheckFatal(e error) {
+
 	if e != nil {
 		debug.PrintStack()
+
+		fmt.Println("Rolling back ...")
+
+		for _, rollbackFunction := range rollbackFunctions {
+			rollbackFunction()
+		}
 		log.Fatal(e)
 
 	}

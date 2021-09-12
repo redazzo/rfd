@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
+	"io/ioutil"
 	"os"
 	"runtime"
 )
@@ -13,9 +14,22 @@ const HOME string = "HOME"
 const HOMEDRIVE string = "HOMEDRIVE"
 const HOMEPATH string = "HOMEPATH"
 
+var sshDir string
+var templateFileLocation string
+
 var logger Trace
 var appConfig *configuration
-var sshDir string
+
+/* 	TODO/IDEA
+A set of functions that will be called to roll back, in case of a fatal error.
+Currently just a set of empty functions and cleaning up requires a bit of manual git commandline
+work.
+
+The idea is that functions that need to be called to roll back a request are added to a queue,
+and are added by the original function that requires rollback. These are then popped off in reverse
+order and executed if there is a fatal error.
+*/
+var rollbackFunctions []func()
 
 type configuration struct {
 	RFDRootDirectory     string `yaml:"rfd-root-directory"`
@@ -25,9 +39,13 @@ type configuration struct {
 }
 
 func init() {
+
 	logger = TraceLog{}
 	appConfig = populateConfig()
 	initSSHDIR()
+	initTemplateFileLocation()
+	err := checkConfig()
+	CheckFatal(err)
 }
 
 func main() {
@@ -124,6 +142,10 @@ func initSSHDIR() {
 	}
 }
 
+func initTemplateFileLocation() {
+	templateFileLocation = appConfig.InstallDirectory + "/template/readme.md"
+}
+
 func displayEnvironment() {
 	operatingSystem := runtime.GOOS
 	fmt.Println(operatingSystem)
@@ -168,4 +190,15 @@ func populateConfig() *configuration {
 	CheckFatal(err)
 
 	return config
+}
+
+func checkConfig() error {
+
+	// Check location of template file is correct
+	_, err := ioutil.ReadFile(templateFileLocation)
+	if err != nil {
+		fmt.Println("Can't read readme template file. Are you sure the configuration is correct?")
+	}
+
+	return err
 }
