@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
+	"github.com/go-git/go-git/v5"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -25,9 +26,8 @@ A set of functions that will be called to roll back, in case of a fatal error.
 Currently just a set of empty functions and cleaning up requires a bit of manual git commandline
 work.
 
-The idea is that functions that need to be called to roll back a request are added to a queue,
-and are added by the original function that requires rollback. These are then popped off in reverse
-order and executed if there is a fatal error.
+The idea is that functions that need to be called to roll back a request are added to a queue.
+These are then popped off in reverse order and executed if there is a fatal error.
 */
 var rollbackFunctions []func()
 
@@ -40,11 +40,16 @@ type configuration struct {
 
 func init() {
 
+	rollbackFunctions = append(rollbackFunctions, undoCreateReadme)
+	rollbackFunctions = append(rollbackFunctions, undoCreateBranch)
+
 	logger = TraceLog{}
 	appConfig = populateConfig()
 	initSSHDIR()
 	initTemplateFileLocation()
+
 	err := checkConfig()
+
 	CheckFatal(err)
 }
 
@@ -60,6 +65,14 @@ func createCommandLineApp() *cli.App {
 		Name:  "rfd",
 		Usage: "Create new rfd's, index and output their status, and manage their .",
 		Commands: []*cli.Command{
+			{
+				Name:  "check",
+				Usage: "Check environment is suitable to ensure a clean run of 'rfd new'",
+				Action: func(c *cli.Context) error {
+					checkConfig()
+					return nil
+				},
+			},
 			{
 				Name:  "index",
 				Usage: "Output the status of all rfd's to index.md in markdown format.",
@@ -199,6 +212,14 @@ func checkConfig() error {
 	if err != nil {
 		fmt.Println("Can't read readme template file. Are you sure the configuration is correct?")
 	}
+
+	// Check to ensure git status is clean.
+	r, err := git.PlainOpen(".")
+	CheckFatal(err)
+
+	w, err := r.Worktree()
+	status, err := w.Status()
+	fmt.Println("Git status: " + status.String())
 
 	return err
 }

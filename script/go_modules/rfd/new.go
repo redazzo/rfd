@@ -144,8 +144,6 @@ func formatToNNNN(rfdNumber int) string {
 
 func createReadme(sRfdNumber string, title string, authors string, state string, link string) (error, *os.File) {
 
-	rollbackFunctions = append(rollbackFunctions, undoCreateReadme)
-
 	logger.traceLog("Creating placeholder readme file, and adding to repository")
 	// Create readme.md file with template @ template/readme.md
 	metadata := RFDMetadata{
@@ -188,8 +186,6 @@ func getRFDDirectory(sRfdNumber string) string {
 }
 
 func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree, *plumbing.Reference) {
-
-	rollbackFunctions = append(rollbackFunctions, undoCreateBranch)
 
 	r, err := git.PlainOpen(".")
 	CheckFatal(err)
