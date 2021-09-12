@@ -219,7 +219,7 @@ func checkConfig() error {
 
 	w, err := r.Worktree()
 	status, err := w.Status()
-	fmt.Println("Git status: " + status.String())
+	fmt.Println(status.String())
 
 	return err
 }
