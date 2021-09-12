@@ -214,7 +214,6 @@ func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree, *plu
 
 	err = w.Checkout(&git.CheckoutOptions{
 		Branch: ref.Name(),
-		Force: true,
 	})
 	CheckFatal(err)
 
