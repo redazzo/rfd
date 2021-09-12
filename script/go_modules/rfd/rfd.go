@@ -43,7 +43,7 @@ func createCommandLineApp() *cli.App {
 		Usage: "Create new rfd's, index and output their status, and manage their .",
 		Commands: []*cli.Command{
 			{
-				Name:  "create-index",
+				Name:  "index",
 				Usage: "Output the status of all rfd's to index.md in markdown format.",
 				Action: func(c *cli.Context) error {
 					Index()
@@ -58,16 +58,10 @@ func createCommandLineApp() *cli.App {
 					return nil
 				},
 			},
-			{
-				Name:  "show-status",
-				Usage: "Displays the status of <nnnn>. Will output the status of every RFD if it isn't provided an RFD ID.",
-				Action: func(c *cli.Context) error {
-					return nil
-				},
-			},
+
 			{
 				Name:  "init",
-				Usage: "Displays the status of <nnnn>. Will output the status of every RFD if it isn't provided an RFD ID.",
+				Usage: "Initialise an RFD repository. Note - the repository must be empty, and it is assumed that there is a remote target repository.",
 				Action: func(c *cli.Context) error {
 					return nil
 				},
@@ -77,6 +71,20 @@ func createCommandLineApp() *cli.App {
 				Usage: "Displays configuration settings and relevant operating system environment variables.",
 				Action: func(c *cli.Context) error {
 					displayEnvironment()
+					return nil
+				},
+			},
+			{
+				Name:  "transition",
+				Usage: "Displays the status of <nnnn>. Will output the status of every RFD if it isn't provided an RFD ID.",
+				Action: func(c *cli.Context) error {
+					return nil
+				},
+			},
+			{
+				Name:  "show",
+				Usage: "Displays the status of <nnnn>. Will output the status of every RFD if it isn't provided an RFD ID.",
+				Action: func(c *cli.Context) error {
 					return nil
 				},
 			},
