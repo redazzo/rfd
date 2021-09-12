@@ -24,4 +24,5 @@ script/go_modules/rfd/.idea/codeStyles/codeStyleConfig.xml
 /rfd.exe
 /bin/rfd.exe
 /.idea/rfd.iml
-
+/bin/
+/rfd
