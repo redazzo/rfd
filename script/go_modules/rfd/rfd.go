@@ -85,8 +85,9 @@ func createCommandLineApp() *cli.App {
 				Name:  "new",
 				Usage: "Create a new rfd",
 				Action: func(c *cli.Context) error {
-					err := checkGitStatus()
-					CheckFatal(err)
+					// Unfortunately the status check in the go-git library is buggy and isn't working
+					//err := checkGitStatus()
+					//CheckFatal(err)
 					New()
 					return nil
 				},
