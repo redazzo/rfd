@@ -71,7 +71,7 @@ func createCommandLineApp() *cli.App {
 				Name:  "check",
 				Usage: "Check environment is suitable to ensure a clean run of 'rfd new'",
 				Action: func(c *cli.Context) error {
-					checkGitStatus()
+					gitRepositoryIsClean()
 					return nil
 				},
 			},
@@ -87,8 +87,10 @@ func createCommandLineApp() *cli.App {
 				Name:  "new",
 				Usage: "Create a new rfd",
 				Action: func(c *cli.Context) error {
-					if checkGitStatus() {
+					if gitRepositoryIsClean() {
 						New()
+					} else {
+						fmt.Println("Creating a new RFD creates and switches to new branch. Please commit (or otherwise) unstaged and/or uncommitted work.")
 					}
 					return nil
 				},
@@ -220,7 +222,7 @@ func checkConfig() error {
 	return err
 }
 
-func checkGitStatus() bool {
+func gitRepositoryIsClean() bool {
 	var fileStatusMapping = map[git.StatusCode]string{
 		git.Unmodified:         "Unmodified",
 		git.Untracked:          "Untracked",
@@ -239,14 +241,25 @@ func checkGitStatus() bool {
 	w, err := r.Worktree()
 	status, err := w.Status()
 
-	for s := range status {
-		fileStatus := status.File(s)
-		fmt.Println(s)
-		fmt.Println(fileStatusMapping[fileStatus.Staging])
-		fmt.Println(fileStatusMapping[fileStatus.Worktree])
-		fmt.Println("---------------------------------------------------------")
+	fmt.Println()
+	if status.IsClean() {
 
+		fmt.Println("Nothing to commit, working tree clean.")
+
+	} else {
+
+		fmt.Println("There are changes present in the repository.")
+		fmt.Println()
+
+		for s := range status {
+			fileStatus := status.File(s)
+			fmt.Println(s + " is " + fileStatusMapping[fileStatus.Worktree])
+
+
+		}
+		fmt.Println()
 	}
+
 
 	return status.IsClean()
 }
