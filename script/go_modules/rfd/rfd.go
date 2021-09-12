@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/urfave/cli/v2"
@@ -88,10 +87,9 @@ func createCommandLineApp() *cli.App {
 				Name:  "new",
 				Usage: "Create a new rfd",
 				Action: func(c *cli.Context) error {
-					// Unfortunately the status check in the go-git library is buggy and isn't working
-					//err := checkGitStatus()
-					//CheckFatal(err)
-					New()
+					if checkGitStatus() {
+						New()
+					}
 					return nil
 				},
 			},
@@ -222,7 +220,7 @@ func checkConfig() error {
 	return err
 }
 
-func checkGitStatus() error {
+func checkGitStatus() bool {
 	var fileStatusMapping = map[git.StatusCode]string{
 		git.Unmodified:         "Unmodified",
 		git.Untracked:          "Untracked",
@@ -241,7 +239,6 @@ func checkGitStatus() error {
 	w, err := r.Worktree()
 	status, err := w.Status()
 
-	fmt.Println(status.IsClean())
 	for s := range status {
 		fileStatus := status.File(s)
 		fmt.Println(s)
@@ -251,5 +248,5 @@ func checkGitStatus() error {
 
 	}
 
-	return errors.New(status.String())
+	return status.IsClean()
 }
