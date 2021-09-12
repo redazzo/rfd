@@ -11,3 +11,12 @@ rfd-states:
   - committed
   - legacy
   - abandoned
+
+rfd-state-description:
+  ideation: "Ideation description"
+  discussion: "Discussion description"
+  accepted: "Accepted description"
+  implementing: "Implementing description"
+  committed: "Committed description"
+  legacy: "Legacy description"
+  abandoned: "Abandoned description"
