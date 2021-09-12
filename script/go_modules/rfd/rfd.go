@@ -219,6 +219,17 @@ func checkConfig() error {
 }
 
 func checkGitStatus() error {
+	var fileStatusMapping = map[git.StatusCode]string{
+		git.Unmodified:         "Unmodified",
+		git.Untracked:          "Untracked",
+		git.Modified:           "Modified",
+		git.Added:              "Added",
+		git.Deleted:            "Deleted",
+		git.Renamed:            "Renamed",
+		git.Copied:             "Copied",
+		git.UpdatedButUnmerged: "Updated",
+	}
+
 	// Check to ensure git status is clean.
 	r, err := git.PlainOpen(".")
 	CheckFatal(err)
@@ -227,6 +238,14 @@ func checkGitStatus() error {
 	status, err := w.Status()
 
 	fmt.Println(status.IsClean())
+	for s := range status {
+		fileStatus := status.File(s)
+		fmt.Println(s)
+		fmt.Println(fileStatusMapping[fileStatus.Staging])
+		fmt.Println(fileStatusMapping[fileStatus.Worktree])
+		fmt.Println("---------------------------------------------------------")
+
+	}
 
 	return errors.New(status.String())
 }
