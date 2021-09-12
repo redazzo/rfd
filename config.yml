@@ -1,6 +1,6 @@
-rfd-root-directory: C:\Users\gerha\project\RFD\script\test
+rfd-root-directory: \home\redazzo\project\rfdcopy\rfd\script\test
 rfd-relative-directory: script\test
-install-directory: C:\Users\gerha\project\RFD
+install-directory: \home\redazzo\project\rfdcopy\rfd
 private-key-file-name: id_rsa #id_ed25519.pub
 
 rfd-states:
