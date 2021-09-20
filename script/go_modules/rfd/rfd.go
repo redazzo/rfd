@@ -39,7 +39,7 @@ type configuration struct {
 	RFDRelativeDirectory 	string `yaml:"rfd-relative-directory"`
 	PrivateKeyFileName   	string `yaml:"private-key-file-name"`
 	Organisation			string `yaml:"organisation"`
-	InstigationDate			string `yaml:"instigation_date"`
+	InstigationDate			string `yaml:"instigation-date"`
 }
 
 func init() {

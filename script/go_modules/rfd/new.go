@@ -161,6 +161,7 @@ func createReadme(metadata *RFDMetadata, tmplate string) (error, *os.File) {
 	logger.traceLog("Creating placeholder readme file, and adding to repository")
 	// Create readme.md file with template @ template/readme.md
 
+	logger.traceLog(tmplate)
 	bTemplate, err := ioutil.ReadFile(tmplate)
 	CheckFatal(err)
 	sTemplate := string(bTemplate)
