@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function doWindowsBuild() {
-  echo "Building Windows ..."
+  echo "Building Windows binary ..."
   GOOS=windows
   GOARCH=amd64
   go build -o bin/rfd.exe ./script/go_modules/rfd
@@ -9,7 +9,7 @@ function doWindowsBuild() {
 }
 
 function doLinuxBuild() {
-  echo "Building Linux ..."
+  echo "Building Linux binary ..."
   GOOS=linux
   GOARCH=amd64
   go build -o bin/rfd ./script/go_modules/rfd

@@ -14,19 +14,23 @@ import (
 )
 
 /*
-	An RFD can be in one of two branch states:
-		1. Newly created, or still being updated and not yet ready for mainlining into the trunk. In this case
-		   there won't yet be a separate RFD directory in the trunk. Instead there will be a branch called nnnn,
-		   where nnnn is a 4-digit number. On this branch there will be a directory called /nnnn, and a readme.md file
-		   located at /nnnn/readme.md
-		2. Mainlined - the nnnn branch will have been merged into the trunk (master), with status set to accepted (or beyond e.g. committed).
 
-		To create a new RFD:
-		1. Fetch all local branches that match nnnn naming format, and keep a record of the greatest as L
-		2. Fetch all remote branches that match nnnn naming format, and keep a record of the greatest as R
-		3. Fetch all directories on the trunk that match nnnn naming format, and keep a record of the greatest as D
-		4. Find max(L, R, D), and create a branch max(L, R, D)+1 --> mmmm
-		5. Create a readme.md file --> mmmm\readme.md
+An RFD can be in one of two branch states:
+
+1. Newly created, or still being updated and not yet ready for mainlining into the trunk. In this case
+   there won't yet be a separate RFD directory in the trunk. Instead there will be a branch called nnnn,
+   where nnnn is a 4-digit number. On this branch there will be a directory called /nnnn, and a readme.md file
+   located at /nnnn/readme.md
+
+2. Mainlined - the nnnn branch will have been merged into the trunk (master), with status set to accepted (or beyond e.g. committed).
+
+To create a new RFD:
+1. Fetch all local branches that match nnnn naming format, and keep a record of the greatest as L
+2. Fetch all remote branches that match nnnn naming format, and keep a record of the greatest as R
+3. Fetch all directories on the trunk that match nnnn naming format, and keep a record of the greatest as D
+4. Find max(L, R, D), and create a branch max(L, R, D)+1 --> mmmm
+5. Create a readme.md file --> mmmm\readme.md
+6. Stage, commit, push to remote, and update upstream tracking
 
 */
 
@@ -38,7 +42,7 @@ type RFDMetadata struct {
 	Link    string
 }
 
-func New() {
+func new() {
 	logger.traceLog("Creating new RFD")
 
 	newRFDNumber := getMaxRFDNumber() + 1
@@ -68,10 +72,18 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	err, r, w, _ := createBranch(formattedRFDNumber)
 	CheckFatal(err)
 
-	err, _ = createReadme(formattedRFDNumber, title, authors, state, link)
+	err, _ = createReadme(&RFDMetadata{
+		formattedRFDNumber,
+		title,
+		authors,
+		state,
+		link,
+	}, templateFileLocation)
+
 	CheckFatal(err)
 
-	// State and commit
+	// Stage and commit
+	logger.traceLog("Staging ...")
 	_, err = w.Add(appConfig.RFDRelativeDirectory + sPathseparator + formattedRFDNumber + sPathseparator + "readme.md")
 	CheckFatal(err)
 
@@ -82,15 +94,20 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	CheckFatal(err)
 
 	// Push to origin and set upstream
+	logger.traceLog("Pushing to origin ...")
 	err = pushToOrigin(r)
+	CheckFatal(err)
+	logger.traceLog("Pushed to origin")
 
+	logger.traceLog("Setting upstream ...")
 	err = setUpstream(r, formattedRFDNumber)
+	logger.traceLog("Upstream set to " + formattedRFDNumber)
 
 	return err
 }
 
 func pushToOrigin(r *git.Repository) error {
-	logger.traceLog("Pushing to origin ...")
+
 	publicKey, err := getPublicKey()
 
 	err = r.Push(&git.PushOptions{
@@ -100,12 +117,10 @@ func pushToOrigin(r *git.Repository) error {
 	})
 	CheckFatal(err)
 
-	logger.traceLog("Pushed to origin")
 	return err
 }
 
 func setUpstream(r *git.Repository, formattedRFDNumber string) error {
-	logger.traceLog("Setting upstream ...")
 
 	r, err := git.PlainOpen(".")
 	CheckFatal(err)
@@ -127,7 +142,6 @@ func setUpstream(r *git.Repository, formattedRFDNumber string) error {
 	err = r.Storer.SetConfig(currentConfig)
 	CheckFatal(err)
 
-	logger.traceLog("Upstream set to " + formattedRFDNumber)
 	return err
 }
 
@@ -142,19 +156,12 @@ func formatToNNNN(rfdNumber int) string {
 	return sRfdNumber
 }
 
-func createReadme(sRfdNumber string, title string, authors string, state string, link string) (error, *os.File) {
+func createReadme(metadata *RFDMetadata, tmplate string) (error, *os.File) {
 
 	logger.traceLog("Creating placeholder readme file, and adding to repository")
 	// Create readme.md file with template @ template/readme.md
-	metadata := RFDMetadata{
-		sRfdNumber,
-		title,
-		authors,
-		state,
-		link,
-	}
 
-	bTemplate, err := ioutil.ReadFile(templateFileLocation)
+	bTemplate, err := ioutil.ReadFile(tmplate)
 	CheckFatal(err)
 	sTemplate := string(bTemplate)
 	tmpl, err := template.New("test").Parse(sTemplate)
@@ -162,12 +169,12 @@ func createReadme(sRfdNumber string, title string, authors string, state string,
 
 	// Create local directory
 
-	err = os.Mkdir(getRFDDirectory(sRfdNumber), 0755)
+	err = os.Mkdir(getRFDDirectory(metadata.RFDID), 0755)
 	CheckFatal(err)
 
 	// Write out new readme.md to nnnn/readme.md
 	// Status on readme.md will be set to "prediscussion"
-	fReadme, err := os.Create(getRFDDirectory(sRfdNumber) + sPathseparator + "readme.md")
+	fReadme, err := os.Create(getRFDDirectory(metadata.RFDID) + sPathseparator + "readme.md")
 	CheckFatal(err)
 	defer fReadme.Close()
 
@@ -214,7 +221,7 @@ func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree, *plu
 
 	err = w.Checkout(&git.CheckoutOptions{
 		Branch: ref.Name(),
-		Keep: true,
+		Keep:   true,
 	})
 	CheckFatal(err)
 

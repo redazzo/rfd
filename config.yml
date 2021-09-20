@@ -9,20 +9,35 @@ private-key-file-name: id_rsa #id_ed25519.pub
 #install-directory: C:\Users\gerha\project\RFD
 #private-key-file-name: id_rsa #id_ed25519.pub
 
-rfd-states:
-  - ideation
-  - discussion
-  - accepted
-  - implementing
-  - committed
-  - legacy
-  - abandoned
+organisation: "Test Organisation"
+instigation-date: "October 2021"
 
-rfd-state-description:
-  ideation: "Ideation description"
-  discussion: "Discussion description"
-  accepted: "Accepted description"
-  implementing: "Implementing description"
-  committed: "Committed description"
-  legacy: "Legacy description"
-  abandoned: "Abandoned description"
+rfd-states:
+  - state:
+      id: 1
+      name: ideation
+      description: "Ideation description"
+  - state:
+      id: 2
+      name: discussion
+      description: "Discussion description"
+  - state:
+      id: 3
+      name: accepted
+      description: "Accepted description"
+  - state:
+      id: 4
+      name: implementing
+      description: "Description description"
+  - state:
+      id: 5
+      name: committed
+      description: "Committed description"
+  - state:
+      id: 6
+      name: legacy
+      description: "Legacy description"
+  - state:
+      id: 7
+      name: abandoned
+      description: "Abandoned description"

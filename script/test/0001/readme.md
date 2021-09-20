@@ -1,15 +1,15 @@
 ---
-title: EPL Request for Discussion Process
+title: {{.organisation}} Request for Discussion Process
 authors: Gerry Kessell-Haak
 state: implementing
-discussion: theLink
+discussion: {{.link}}
 ---
-# RFD0001: The EPL Request for Discussion Process
+# RFD0001: The {{.organisation}} Request for Discussion Process
 
 | Description | Link |
 |---|---|
 |Installation and configuration instructions| [Installation](install_and_config.md)|
-| A complete record of our RFDs since instigation in October 2020 | [RFD Record](record.md) |
+| A complete record of our RFDs since instigation in {{.instigation-date}} | [RFD Index](index.md) |
 
 </br></br>
 

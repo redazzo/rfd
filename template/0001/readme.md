@@ -1,15 +1,15 @@
 ---
-title: EPL Request for Discussion Process
-authors: Gerry Kessell-Haak <gerry.kessellhaak@edpay.nz>, Bob
+title: {{.organisation}} Request for Discussion Process
+authors: Gerry Kessell-Haak
 state: implementing
-discussion: <link to discussion>
+discussion: {{.link}}
 ---
-# RFD0001: The EPL Request for Discussion Process
+# RFD0001: The {{.organisation}} Request for Discussion Process
 
 | Description | Link |
 |---|---|
 |Installation and configuration instructions| [Installation](install_and_config.md)|
-| A complete record of our RFDs since instigation in October 2020 | [RFD Record](record.md) |
+| A complete record of our RFDs since instigation in {{.instigation-date}} | [RFD Index](index.md) |
 
 </br></br>
 
@@ -55,7 +55,7 @@ You will first need to reserve the number you wish to use for your RFC. This num
 
 ### 2. Create a Branch For Your RFD
 create a new git branch, named after the RFD number you wish to reserve. This number should have leading zeros if less than 4 digits. Before creating the branch, verify that it does not already exist:
-    
+
     $ git branch -r *0004
 
 If you see a branch there (but not a corresponding sub-directory in rfd in master), it is possible that the RFD is currently being created; stop and check with co-workers before proceeding! Once you have verified that the branch doesn't exist, create it locally and switch to it:

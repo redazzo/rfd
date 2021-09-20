@@ -71,7 +71,7 @@ func createCommandLineApp() *cli.App {
 				Name:  "check",
 				Usage: "Check environment is suitable to ensure a clean run of 'rfd new'",
 				Action: func(c *cli.Context) error {
-					gitRepositoryIsClean()
+					checkAndReportOnRepositoryState()
 					return nil
 				},
 			},
@@ -87,10 +87,11 @@ func createCommandLineApp() *cli.App {
 				Name:  "new",
 				Usage: "Create a new rfd",
 				Action: func(c *cli.Context) error {
-					if gitRepositoryIsClean() {
-						New()
+					if checkAndReportOnRepositoryState() {
+						new()
 					} else {
 						fmt.Println("Creating a new RFD creates and switches to new branch. Please commit (or otherwise) unstaged and/or uncommitted work.")
+						fmt.Println()
 					}
 					return nil
 				},
@@ -100,6 +101,7 @@ func createCommandLineApp() *cli.App {
 				Name:  "init",
 				Usage: "Initialise an RFD repository. Note - the repository must be empty, and it is assumed that there is a remote target repository.",
 				Action: func(c *cli.Context) error {
+					initRepo()
 					return nil
 				},
 			},
@@ -216,13 +218,15 @@ func checkConfig() error {
 	// Check location of template file is correct
 	_, err := ioutil.ReadFile(templateFileLocation)
 	if err != nil {
-		fmt.Println("Can't read readme template file. Are you sure the configuration is correct?\n")
+		fmt.Println("Attempted to read " + templateFileLocation)
+		fmt.Println("Can't read readme template file. Please check the config.yml file.\n")
 	}
 
 	return err
 }
 
-func gitRepositoryIsClean() bool {
+func checkAndReportOnRepositoryState() bool {
+
 	var fileStatusMapping = map[git.StatusCode]string{
 		git.Unmodified:         "Unmodified",
 		git.Untracked:          "Untracked",
@@ -255,11 +259,9 @@ func gitRepositoryIsClean() bool {
 			fileStatus := status.File(s)
 			fmt.Println(s + " is " + fileStatusMapping[fileStatus.Worktree])
 
-
 		}
 		fmt.Println()
 	}
-
 
 	return status.IsClean()
 }

@@ -14,7 +14,7 @@ import (
 
 func Index() error {
 
-	logger.traceLog("Creating new entries ...")
+	logger.traceLog("Creating index file ...")
 
 	// The entries to be read and written to the
 	// markdown table file.
