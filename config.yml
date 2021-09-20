@@ -1,13 +1,13 @@
 rfd-root-directory: /home/redazzo/project/rfdcopy/rfd/script/test
 rfd-relative-directory: script/test
 install-directory: /home/redazzo/project/rfdcopy/rfd
-private-key-file-name: id_rsa #id_ed25519.pub
+private-key-file-name: id_rsa #id_ed25519
 
 
 #rfd-root-directory: C:\Users\gerha\project\RFD\script\test
 #rfd-relative-directory: script\test
 #install-directory: C:\Users\gerha\project\RFD
-#private-key-file-name: id_rsa #id_ed25519.pub
+#private-key-file-name: id_rsa #id_ed25519
 
 organisation: "Test Organisation"
 instigation-date: "October 2021"
