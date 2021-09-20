@@ -77,7 +77,6 @@ func initReadme() {
 
 	}
 
-
 	createReadme(&RFDMetadata{
 		formattedRFDNumber,
 		title,
@@ -86,6 +85,9 @@ func initReadme() {
 		link,
 
 	}, newRepoTemplateFileLocation)
+
+	copyToRoot(readmeFile, "readme.md", true)
+
 }
 
 func printCancelled() {

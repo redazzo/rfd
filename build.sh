@@ -29,6 +29,8 @@ case "$1" in
     ;;
   *)
     echo $"Usage: $0 {windows|linux|all}"
+    echo $"Defaulting to linux ..."
+    doLinuxBuild
     exit 1
 esac
 

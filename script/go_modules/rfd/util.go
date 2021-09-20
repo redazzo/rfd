@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
@@ -80,4 +81,27 @@ func getUserInput(txt string) string {
 	responseTxt = strings.TrimSuffix(responseTxt, "\n")
 	CheckFatal(err)
 	return responseTxt
+}
+
+func copyToRoot(source string, target string, force bool) {
+
+	bytesRead, err := ioutil.ReadFile(source)
+
+	CheckFatal(err)
+
+	if isFileExists(appConfig.RFDRootDirectory + sPathseparator + target) {
+		if force {
+			err = os.Remove(appConfig.RFDRootDirectory + sPathseparator + target)
+			CheckFatal(err)
+		} else {
+			log.Fatal("Error: Attempted to overwrite " + source + " to RFD root.")
+		}
+	}
+
+	err = ioutil.WriteFile(appConfig.RFDRootDirectory + sPathseparator + target, bytesRead, 0744)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
