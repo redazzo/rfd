@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	"log"
 	"os"
 	"regexp"
 	"runtime/debug"
+	"strings"
 )
 
 type Trace interface {
@@ -52,4 +54,30 @@ func getSSHPath() string {
 	sPathseparator := string(os.PathSeparator)
 	sshPath := sshDir + sPathseparator + ".ssh" + sPathseparator + appConfig.PrivateKeyFileName
 	return sshPath
+}
+
+func isFileExists(sFile string) bool {
+	_ , err := os.Stat(sFile)
+
+	exists := true
+
+	if err != nil {
+		if os.IsNotExist(err) {
+			exists = false
+		}
+	}
+
+	return exists
+}
+
+func getUserInput(txt string) string {
+
+	print(txt + " ")
+	reader := bufio.NewReader(os.Stdin)
+
+	// Hack, but it'll do. Too lazy to find a better way ...
+	responseTxt, err := reader.ReadString('\n')
+	responseTxt = strings.TrimSuffix(responseTxt, "\n")
+	CheckFatal(err)
+	return responseTxt
 }

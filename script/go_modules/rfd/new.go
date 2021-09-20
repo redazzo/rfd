@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
@@ -366,14 +365,4 @@ func getMaxRemoteBranchId() (error, int) {
 	return err, maxRemoteBranchId
 }
 
-func getUserInput(txt string) string {
 
-	print(txt + " ")
-	reader := bufio.NewReader(os.Stdin)
-
-	// Hack, but it'll do. Too lazy to find a better way ...
-	responseTxt, err := reader.ReadString('\n')
-	responseTxt = strings.TrimSuffix(responseTxt, "\n")
-	CheckFatal(err)
-	return responseTxt
-}

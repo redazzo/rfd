@@ -94,7 +94,7 @@ func createCommandLineApp() *cli.App {
 					if checkAndReportOnRepositoryState() {
 						new()
 					} else {
-						fmt.Println("Creating a new RFD creates and switches to new branch. Please commit (or otherwise) unstaged and/or uncommitted work.")
+						fmt.Println("Creating a new RFD creates and switches to new branch. Commit (or otherwise) unstaged and/or uncommitted work first.")
 						fmt.Println()
 					}
 					return nil

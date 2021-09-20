@@ -1,21 +1,60 @@
 package main
 
+import (
+	"os"
+	"strings"
+)
+
 /**
 Initialising a repo steps:
 
 1. Create a branch 0001
-2. Create a directory 0001, and checkout that branch
+2. Create a directory 0001
 3. Copy template/0001/readme.md into <rfd root>/0001 directory
 4. Copy template /0001/readme.md into <rfd root>.
-5. Stage, commit, push to remote, and update upstream tracking
-6.
+
 */
 
 func initRepo() {
 	create0001Rfd()
 }
 
-func create0001Rfd() error {
+func create0001Rfd() {
+
+	var fileExists = isFileExists(getRFDDirectory("0001") + sPathseparator + "readme.md")
+
+	if fileExists {
+
+		response := getUserInput("File exists. Overwrite (y/N)?")
+		response = strings.ToUpper(response)
+
+		switch response {
+		case "N":
+			printCancelled()
+
+		case "NO":
+			printCancelled()
+
+		case "Y":
+			initReadme()
+
+		case "YES":
+			initReadme()
+
+		default:
+			printCancelled()
+
+		}
+
+
+	} else {
+
+		initReadme()
+
+	}
+}
+
+func initReadme() {
 
 	// Format the number to match nnnn
 	formattedRFDNumber := "0001"
@@ -24,11 +63,20 @@ func create0001Rfd() error {
 	state := "discussion"
 	link := ""
 
-	// Branch, write the readme file, stage, commit, push, and set upstream
+	readmeFile := getRFDDirectory(formattedRFDNumber) + sPathseparator + "readme.md"
 
-	// Create a branch named as per "nnnn"
-	//err, r, w, _ := createBranch(formattedRFDNumber)
-	//CheckFatal(err)
+	if isFileExists(getRFDDirectory(formattedRFDNumber)) {
+
+		if isFileExists(readmeFile) {
+			err := os.Remove(readmeFile)
+			CheckFatal(err)
+		}
+
+		err := os.Remove(getRFDDirectory(formattedRFDNumber))
+		CheckFatal(err)
+
+	}
+
 
 	createReadme(&RFDMetadata{
 		formattedRFDNumber,
@@ -38,6 +86,9 @@ func create0001Rfd() error {
 		link,
 
 	}, newRepoTemplateFileLocation)
-
-	return nil
 }
+
+func printCancelled() {
+	println("Operation cancelled.")
+}
+
