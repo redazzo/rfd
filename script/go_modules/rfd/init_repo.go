@@ -1,10 +1,5 @@
 package main
 
-import (
-	"github.com/go-git/go-git/v5"
-	"os"
-)
-
 /**
 Initialising a repo steps:
 
@@ -24,36 +19,25 @@ func create0001Rfd() error {
 
 	// Format the number to match nnnn
 	formattedRFDNumber := "0001"
+	title := "The " + appConfig.Organisation + " Request for Discussion Process"
+	authors := "Gerry Kessell-Haak"
+	state := "discussion"
+	link := ""
 
 	// Branch, write the readme file, stage, commit, push, and set upstream
 
 	// Create a branch named as per "nnnn"
-	err, r, w, _ := createBranch(formattedRFDNumber)
-	CheckFatal(err)
+	//err, r, w, _ := createBranch(formattedRFDNumber)
+	//CheckFatal(err)
 
-	err, _ = copyReadme()
-	CheckFatal(err)
+	createReadme(&RFDMetadata{
+		formattedRFDNumber,
+		title,
+		authors,
+		state,
+		link,
 
-	// Stage and commit
-	_, err = w.Add(appConfig.RFDRelativeDirectory + sPathseparator + formattedRFDNumber + sPathseparator + "readme.md")
-	CheckFatal(err)
+	}, newRepoTemplateFileLocation)
 
-	logger.traceLog("Committing ...")
-	_, err = w.Commit("Earmark branch", &git.CommitOptions{
-		All: true,
-	})
-	CheckFatal(err)
-
-	// Push to origin and set upstream
-	err = pushToOrigin(r)
-	CheckFatal(err)
-
-	err = setUpstream(r, formattedRFDNumber)
-
-	return err
-}
-
-func copyReadme() (error, *os.File) {
-
-	return nil, nil
+	return nil
 }

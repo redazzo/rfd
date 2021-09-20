@@ -1,17 +1,19 @@
 ---
-title: {{.organisation}} Request for Discussion Process
-authors: Gerry Kessell-Haak
-state: implementing
-discussion: {{.link}}
+title: {{.Title}}
+authors: {{.Authors}}
+state: {{.State}}
+discussion: {{.Link}}
 ---
-# RFD0001: The {{.organisation}} Request for Discussion Process
+
+# RFD0001: {{.Title}}
 
 | Description | Link |
 |---|---|
-|Installation and configuration instructions| [Installation](install_and_config.md)|
-| A complete record of our RFDs since instigation in {{.instigation-date}} | [RFD Index](index.md) |
+|Installation and configuration instructions| [Installation](0001/install_and_config.md)|
+| A complete record of our RFDs since instigation in {{.instigation-date}} | [RFD Index](0001/index.md) |
 
 </br></br>
+The tooling and process are based on the Request for Discussion Process [described here](https://github.com/redazzo/rfd)
 
 # Introduction
 

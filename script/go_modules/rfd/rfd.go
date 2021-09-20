@@ -17,6 +17,7 @@ const HOMEPATH string = "HOMEPATH"
 
 var sshDir string
 var templateFileLocation string
+var newRepoTemplateFileLocation string
 var sPathseparator string
 
 var logger Trace
@@ -33,10 +34,12 @@ These are then popped off in reverse order and executed if there is a fatal erro
 var rollbackFunctions []func()
 
 type configuration struct {
-	RFDRootDirectory     string `yaml:"rfd-root-directory"`
-	InstallDirectory     string `yaml:"install-directory"`
-	RFDRelativeDirectory string `yaml:"rfd-relative-directory"`
-	PrivateKeyFileName   string `yaml:"private-key-file-name"`
+	RFDRootDirectory     	string `yaml:"rfd-root-directory"`
+	InstallDirectory     	string `yaml:"install-directory"`
+	RFDRelativeDirectory 	string `yaml:"rfd-relative-directory"`
+	PrivateKeyFileName   	string `yaml:"private-key-file-name"`
+	Organisation			string `yaml:"organisation"`
+	InstigationDate			string `yaml:"instigation_date"`
 }
 
 func init() {
@@ -50,6 +53,7 @@ func init() {
 	appConfig = populateConfig()
 	initSSHDIR()
 	initTemplateFileLocation()
+	initNewRepoTemplateFileLocation()
 
 	err := checkConfig()
 	CheckFatal(err)
@@ -154,6 +158,7 @@ VERSION:
 }
 
 func initSSHDIR() {
+
 	operatingSystem := runtime.GOOS
 	switch operatingSystem {
 	case "windows":
@@ -161,10 +166,15 @@ func initSSHDIR() {
 	case "linux":
 		sshDir = os.Getenv(HOME)
 	}
+
 }
 
 func initTemplateFileLocation() {
 	templateFileLocation = appConfig.InstallDirectory + sPathseparator + "template" + sPathseparator + "readme.md"
+}
+
+func initNewRepoTemplateFileLocation() {
+	newRepoTemplateFileLocation = appConfig.InstallDirectory + sPathseparator + "template" + sPathseparator + "0001" + sPathseparator + "readme.md"
 }
 
 func displayEnvironment() {
