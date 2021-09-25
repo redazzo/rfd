@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/go-git/go-git/v5"
 	"os"
 	"strings"
 )
@@ -17,6 +18,34 @@ Initialising a repo steps:
 
 func initRepo() {
 	create0001Rfd()
+
+	// Stage and commit
+	logger.traceLog("Staging ...")
+	r, err := git.PlainOpen(".")
+	CheckFatal(err)
+	w, err := r.Worktree()
+	CheckFatal(err)
+
+	tmpPrefix := getPathPrefix()
+	_, err = w.Add(tmpPrefix + "0001" + sPathseparator)
+	CheckFatal(err)
+	_, err = w.Add(tmpPrefix + "0001" + sPathseparator + "readme.md")
+	CheckFatal(err)
+	_, err = w.Add("readme.md")
+	CheckFatal(err)
+
+	logger.traceLog("Committing ...")
+	_, err = w.Commit("Initialising repository", &git.CommitOptions{
+		All: true,
+	})
+	CheckFatal(err)
+
+	// Push to origin
+	logger.traceLog("Pushing to origin ...")
+	err = pushToOrigin(r)
+	CheckFatal(err)
+	logger.traceLog("Pushed to origin")
+	
 }
 
 func create0001Rfd() {

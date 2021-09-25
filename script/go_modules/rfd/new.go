@@ -85,7 +85,10 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
 	// Stage and commit
 	logger.traceLog("Staging ...")
-	_, err = w.Add(appConfig.RFDRelativeDirectory + sPathseparator + formattedRFDNumber + sPathseparator + "readme.md")
+	tmpPrefix := getPathPrefix()
+
+	_, err = w.Add(tmpPrefix + formattedRFDNumber + sPathseparator)
+	_, err = w.Add(tmpPrefix + formattedRFDNumber + sPathseparator + "readme.md")
 	CheckFatal(err)
 
 	logger.traceLog("Committing ...")
@@ -105,6 +108,16 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	logger.traceLog("Upstream set to " + formattedRFDNumber)
 
 	return err
+}
+
+func getPathPrefix() string {
+	tmpPrefix := sPathseparator
+	if len(strings.TrimSpace(appConfig.RFDRelativeDirectory)) == 0 {
+		tmpPrefix = ""
+	} else {
+		tmpPrefix = appConfig.RFDRelativeDirectory + sPathseparator
+	}
+	return tmpPrefix
 }
 
 func pushToOrigin(r *git.Repository) error {
