@@ -59,6 +59,7 @@ func new() {
 
 	CheckFatal(err)
 
+
 }
 
 func createRFD(rfdNumber int, title string, authors string, state string, link string) error {
@@ -81,6 +82,9 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 		nil,
 	}, templateFileLocation)
 
+	// Update index
+	Index()
+
 	CheckFatal(err)
 
 	// Stage and commit
@@ -88,7 +92,10 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 	tmpPrefix := getPathPrefix()
 
 	_, err = w.Add(tmpPrefix + formattedRFDNumber + sPathseparator)
+	CheckFatal(err)
 	_, err = w.Add(tmpPrefix + formattedRFDNumber + sPathseparator + "readme.md")
+	CheckFatal(err)
+	_, err = w.Add(tmpPrefix + "index.md")
 	CheckFatal(err)
 
 	logger.traceLog("Committing ...")

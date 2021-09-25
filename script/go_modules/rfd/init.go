@@ -45,7 +45,7 @@ func initRepo() {
 	err = pushToOrigin(r)
 	CheckFatal(err)
 	logger.traceLog("Pushed to origin")
-	
+
 }
 
 func create0001Rfd() {
