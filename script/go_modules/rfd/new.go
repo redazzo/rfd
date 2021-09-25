@@ -39,6 +39,7 @@ type RFDMetadata struct {
 	Authors string
 	State   string
 	Link    string
+	RFDStates []map[string]map[string]string
 }
 
 func new() {
@@ -77,6 +78,7 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 		authors,
 		state,
 		link,
+		nil,
 	}, templateFileLocation)
 
 	CheckFatal(err)

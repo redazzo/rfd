@@ -4,7 +4,7 @@
 
 Almost all engineering of note is a social enterprise. A significant contributor to the rate of innovation and general productivity of an engineering team is the rate at which new ideas can be created, discussed, critiqued and improved, and either rejected or (hopefully) accepted and used.
 
-The purpose of the Request for Discussion (RFD) process is to facilitate a lightweight means for raising, discussing, and accepting (or rejecting) ideas, concepts, designs, and decisions. The process and tooling as described here is based on the original W3C RFC process, and *heavily* influenced by [this blogpost](https://oxide.computer/blog/rfd-1-requests-for-discussion).
+The purpose of a Request for Discussion (RFD) process is to facilitate a lightweight means for raising, discussing, and accepting (or rejecting) ideas, concepts, designs, and decisions. The process and tooling as described here is based on the original W3C RFC process, and *heavily* influenced by [this blogpost](https://oxide.computer/blog/rfd-1-requests-for-discussion).
 
 The following are examples of when an RFD is appropriate, these are intended to be broad:
 
@@ -14,11 +14,11 @@ The following are examples of when an RFD is appropriate, these are intended to 
 * Change to an internal process
 * A design for testing
 
-To facilitate the the above, we've created a simple commandline tool that integrates with Git to automate the initialisation and management of an RFD process.
+To facilitate the the above, we've created a simple commandline tool that integrates with Git to automate the initialisation of a repository, creation of an RFD, and management of an RFD process.
 
-## Structure of an RFD
+## Structure of an RFD and the RFD Repository
 
-An RFD begins as a markdown document with a metadata header. The data to be captured includes the authors of the RFD, the state, title, and a link to the thread discussing the RFD. The state indicates where along the process the RFD has progressed, as per the following table. An example is shown below:
+An RFD itself begins as a markdown document with a metadata header. The data to be captured includes the authors of the RFD, the state, title, and a link to the thread discussing the RFD. The state indicates where along the process the RFD has progressed, as per the following table. An example is shown below:
 
     ---
     title: Introduce Request for Discussion Process
@@ -29,27 +29,42 @@ An RFD begins as a markdown document with a metadata header. The data to be capt
 
 An RFD repository is structured as follows:
 
-1. Each RFD results in a folder named as per RFD ID.
-2. A branch is created and named as per the RFD ID.
+1. Each RFD results in a folder named as per RFD ID, e.g. "0003". The folder holds a readme.md markdown document, and any other content, that describes the RFD. By using the readme.md naming convention tools and services such as github will automatically display its content.
+2. A branch is created and named as per the RFD ID (i.e. in keeping the with the prior example, the branch name is "0003").
 3. Discussion on pull a request becomes a record of the changes and updates.
-4. The metadata is used to populate an index of the RFD's.
+4. Markdown metadata located at the head of the RFD document is used to capture the title, author(s), and other data, and used to populate an index of all RFDs.
+
 
 ![pic](./media/rfdrepo.png)
 
-When a repository is created, the very first RFD is the RFD process itself.
+When a repository is created, the very first RFD is the RFD process itself, captured in a folder named 0001. A readme.md document in the 0001 folder is copied to the root of the RFD repository, and contains content similar that that found in this document, but targeted at the users of the RFD repository itself.
+
+It is assumed that the process will be used as-is. However, by creating this directory we have provided the ability for others to update their own respective process by (if they wish) creating a "0001" branch and using the RFD process accordingly to capture the associated discussion.
+
+## The RDF Process and Lifecycle
+
+*Never at anytime during the process do you push directly to the master branch. Once the pull request (PR) with the RFD in your branch is merged into master, then the RFD will appear in the master branch.*
+
+An RFD progresses through stages that default to the following. Note that these are configurable via the config.yml file (described later).
 
 | State | Description |
 |--------|-------------|
-| **prediscussion** | A document in the prediscussion state indicates that the work is not yet ready for discussion. The prediscussion state signifies that work iterations are being done quickly on the RFD in its branch in order to advance the RFD to the discussion state.|
-|**discussion**| To initiate discussion, a pull request is instigated. At this point a discussion is being had for the RFD in a Pull Request.|
-|**accepted**|Once (or if) discussion has converged and the Pull Request is ready to be merged, it should be updated to the accepted state before being merged into master.<br><br>Note that just because something is in the accepted state does not mean that it cannot be updated and corrected. |
-|**implementing**| Not just published, work is actively progressing on implementing the idea or concept. |
-|**committed**| Once an idea has been entirely implemented, it must be moved to the committed state. Comments on RFDs in the committed state should generally be raised as issues -- but if the comment represents a call for a significant divergence from or extension to committed functionality, a new RFD may be called for; as in all things, use your best judgment.|
-|**abandoned**|If an idea is found to be non-viable (that is, deliberately never implemented after having been accepted) or if an RFD should be otherwise indicated that it should be ignored, it can be moved into the abandoned state. |
+|draft|The first draft, can be used to capture the beginnings of a thought, or even just a single sentence so that it's not forgotten. A document in the draft state contains at least a description of the topic that the RFD will cover, providing an indication of the scope of the eventual RFD.|
+|discussion|Documents under active discussion should be in the discussion state, with the discussion taking place in an active Pull Request.|
+|accepted|Once (or if) discussion has converged and the Pull Request is ready to be merged, it should be updated to the accepted state before being merged into master. Note that just because something is in the accepted state does not mean that it cannot be updated and corrected.|
+|committed|Once an idea is being acted on (e.g. being built, coded, or moved into an operational state), it is moved to the committed state. Comments on RFDs in the committed state should generally be raised as issues -- but if the comment represents a call for a significant divergence from or extension to committed functionality, a new RFD may be called for; as in all things, use your best judgment.|
+|abandoned|If an idea is found to be non-viable (that is, deliberately never implemented after having been accepted) it can be moved into the abandoned state.|
 
-## The RDF Lifecycle
+### Prerequisites
+The following assumes you have installed the RFD commandline tool. If you haven't, [instructions can be found here]().
 
-*Never at anytime during the process do you push directly to the master branch. Once the pull request (PR) with the RFD in your branch is merged into master, then the RFD will appear in the master branch.*
+### Initialising an RFD Repository
+
+Ideally Github or similar is used to hold the RFD repository as you'll be able to take advantage of the default repository rendering and management tools.
+
+The first requirement is to create the repository - [you can find instructions for Github here](https://docs.github.com/en/get-started/quickstart/create-a-repo).
+
+Clone your newly-created repository, [**making sure you use ssh**](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository). This is more secure, and is required for the RFD commandline tool to function.
 
 ### 1. Reserve an RFD Number
 You will first need to reserve the number you wish to use for your RFC. This number should be the next available RFD number from looking at the current git branch -r output.

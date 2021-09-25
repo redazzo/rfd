@@ -9,8 +9,8 @@ discussion: {{.Link}}
 
 | Description | Link |
 |---|---|
-|Installation and configuration instructions| [Installation](0001/install_and_config.md)|
-| Index of RFDs | [RFD Index](0001/index.md) |
+|Installation and configuration instructions| [Installation](0001/installation.md)|
+| Index of RFDs | [RFD Index](index.md) |
 
 </br></br>
 The tooling and process are based on the Request for Discussion Process [described here](https://github.com/redazzo/rfd)
@@ -32,21 +32,29 @@ This process has been *heavily* influenced by [this blogpost](https://oxide.comp
 An RFD begins as a markdown document with a metadata header (as per this first RFD, as an example). The data to be captured includes the authors of the RFD, the state, and title. The state indicates where along the process the RFD has progressed, as per the following table. An example is shown below:
 
     ---
-    title: EPL Request for Discussion Process
-    authors: Gerry Kessell-Haak <gerry.kessellhaak@edpay.nz>
+    title: Request for Discussion Process
+    authors: Joe Bloggs <joe.bloggs@example.com>
     state: implementing
     discussion: <link to discussion>
     ---
 
 | State | Description |
 |--------|-------------|
-|**ideation**|The sketch of an idea, a first cut, and may be discarded if the author decides to take it no further. Used to capture the beginnings of a thought, or even just a single sentence so that it's not forgotten. A document in the ideation state contains at least a description of the topic that the RFD will cover, providing an indication of the scope of the eventual RFD. An RFD in this state is effectively a placeholder |
-| **prediscussion** | A document in the prediscussion state indicates that the work is not yet ready for discussion. The prediscussion state signifies that work iterations are being done quickly on the RFD in its branch in order to advance the RFD to the discussion state.|
-|**discussion**| Documents under active discussion should be in the discussion state. At this point a discussion is being had for the RFD in a Pull Request.|
-|**accepted**|Once (or if) discussion has converged and the Pull Request is ready to be merged, it should be updated to the accepted state before being merged into master. Note that just because something is in the accepted state does not mean that it cannot be updated and corrected. |
-|**implementing**| Not just published, work is actively progressing on implementing the idea or concept. |
-|**committed**| Once an idea has been entirely implemented, it must be moved to the committed state. Comments on RFDs in the committed state should generally be raised as issues -- but if the comment represents a call for a significant divergence from or extension to committed functionality, a new RFD may be called for; as in all things, use your best judgment.|
-|**abandoned**|If an idea is found to be non-viable (that is, deliberately never implemented after having been accepted) or if an RFD should be otherwise indicated that it should be ignored, it can be moved into the abandoned state. |
+{{ $state := "" -}}
+{{ $desc := "" -}}
+{{ range $k, $v := $.RFDStates -}}
+    {{- range $sk, $sv := $v -}}
+        {{- range $ssk, $ssv := $sv -}}
+            {{- if eq $ssk "name" -}}
+                {{- $state = $ssv -}}
+            {{- end -}}
+            {{- if eq $ssk "description" -}}
+                {{- $desc = $ssv -}}
+            {{- end -}}
+        {{- end -}}
+|{{ $state }}|{{ $desc }}|
+{{ end }}
+{{- end }}
 
 ## The RDF Lifecycle
 
@@ -70,7 +78,8 @@ Create a placeholder RFD with the following commands (make sure you're in the RF
     $ mkdir -p rfd/0004
     $ cp templates/rfd.md rfd/0004/README.md
 
-Fill in the RFD number and title placeholders in the metadata section of the new doc and add your name as an author. The status of the RFD at this point should be "ideation" or "prediscussion".
+Fill in the RFD number and title placeholders in the metadata section of the new doc and add your name as an author. The status of the RFD at this point should be
+{{.RFD_first_state}}.
 
 Update the record.md document in the RFD root directory accordingly.
 
@@ -81,8 +90,6 @@ Push your changes to your RFD branch in the RFD repo.
     $ git add rfd/0042/README.md
     $ git commit -m '0004: Adding placeholder for RFD <Title>'
     $ git push origin 0004
-
-*FUTURE STATE: The desired behaviour is that after your branch is pushed, the table in the README on the master branch will update automatically with the new RFD (IN PROGRESS!). If you ever change the name of the RFD in the future, the table will update as well. Whenever information about the state of the RFD changes, this updates the table as well. The single source of truth for information about the RFD comes from the RFD in the branch until it is merged.*
 
 ### 4. Iterate on the RFD in Your Branch
 You can work on writing your RFD in your branch:

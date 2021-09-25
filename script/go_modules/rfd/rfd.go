@@ -40,6 +40,7 @@ type configuration struct {
 	PrivateKeyFileName   	string `yaml:"private-key-file-name"`
 	Organisation			string `yaml:"organisation"`
 	InstigationDate			string `yaml:"instigation-date"`
+	RFDStates				[]map[string]map[string]string `yaml:"rfd-states"`
 }
 
 func init() {
@@ -131,6 +132,14 @@ func createCommandLineApp() *cli.App {
 					return nil
 				},
 			},
+			{
+				Name:  "test-config",
+				Usage: "Testing testing.",
+				Action: func(c *cli.Context) error {
+
+					return nil
+				},
+			},
 		},
 	}
 
@@ -201,6 +210,11 @@ func displayEnvironment() {
 	CheckFatal(err)
 
 	fmt.Println("SSH Public Key=" + sPublicKey)
+
+	println()
+	println()
+
+	fmt.Printf("%+v", appConfig)
 }
 
 func populateConfig() *configuration {
@@ -271,7 +285,10 @@ func checkAndReportOnRepositoryState() bool {
 
 		}
 		fmt.Println()
+
 	}
 
 	return status.IsClean()
 }
+
+

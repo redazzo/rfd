@@ -21,7 +21,7 @@ func initRepo() {
 
 func create0001Rfd() {
 
-	var fileExists = isFileExists(getRFDDirectory("0001") + sPathseparator + "readme.md")
+	var fileExists = exists(getRFDDirectory("0001") + sPathseparator + "readme.md")
 
 	if fileExists {
 
@@ -56,7 +56,6 @@ func create0001Rfd() {
 
 func initReadme() {
 
-	// Format the number to match nnnn
 	formattedRFDNumber := "0001"
 	title := "The " + appConfig.Organisation + " Request for Discussion Process"
 	authors := "Gerry Kessell-Haak"
@@ -65,9 +64,9 @@ func initReadme() {
 
 	readmeFile := getRFDDirectory(formattedRFDNumber) + sPathseparator + "readme.md"
 
-	if isFileExists(getRFDDirectory(formattedRFDNumber)) {
+	if exists(getRFDDirectory(formattedRFDNumber)) {
 
-		if isFileExists(readmeFile) {
+		if exists(readmeFile) {
 			err := os.Remove(readmeFile)
 			CheckFatal(err)
 		}
@@ -83,6 +82,7 @@ func initReadme() {
 		authors,
 		state,
 		link,
+		appConfig.RFDStates,
 
 	}, newRepoTemplateFileLocation)
 

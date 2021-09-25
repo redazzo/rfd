@@ -57,7 +57,7 @@ func getSSHPath() string {
 	return sshPath
 }
 
-func isFileExists(sFile string) bool {
+func exists(sFile string) bool {
 	_ , err := os.Stat(sFile)
 
 	exists := true
@@ -89,7 +89,7 @@ func copyToRoot(source string, target string, force bool) {
 
 	CheckFatal(err)
 
-	if isFileExists(appConfig.RFDRootDirectory + sPathseparator + target) {
+	if exists(appConfig.RFDRootDirectory + sPathseparator + target) {
 		if force {
 			err = os.Remove(appConfig.RFDRootDirectory + sPathseparator + target)
 			CheckFatal(err)
