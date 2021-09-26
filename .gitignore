@@ -25,3 +25,5 @@ script/go_modules/rfd/.idea/codeStyles/codeStyleConfig.xml
 /.idea/rfd.iml
 /bin/
 /rfd
+/package/
+/rfd.tar
