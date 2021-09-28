@@ -55,11 +55,28 @@ func new() {
 	fmt.Println("Authors: " + authors)
 	fmt.Println("RFD ID: " + strconv.Itoa(newRFDNumber))
 
-	err := createRFD(newRFDNumber, title, authors, "prediscussion", "")
+	defaultStatus := getDefaultStatus()
+
+	err := createRFD(newRFDNumber, title, authors, defaultStatus, "")
 
 	CheckFatal(err)
 
 
+}
+
+func getDefaultStatus() string {
+
+	var result string = "ERROR"
+
+	for _, state := range appConfig.RFDStates {
+		for _, m := range state {
+			if m["id"] == "1" {
+				result = m["name"]
+			}
+		}
+	}
+
+	return result
 }
 
 func createRFD(rfdNumber int, title string, authors string, state string, link string) error {

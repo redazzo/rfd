@@ -70,11 +70,11 @@ func main() {
 func createCommandLineApp() *cli.App {
 	app := &cli.App{
 		Name:  "rfd",
-		Usage: "Create new rfd's, index and output their status, and manage their .",
+		Usage: "Create new rfd's, index, and manage their status.",
 		Commands: []*cli.Command{
 			{
 				Name:  "check",
-				Usage: "Check environment is suitable to ensure a clean run of 'rfd new'",
+				Usage: "Check environment is suitable to ensure a clean run when creating a new RFD.",
 				Action: func(c *cli.Context) error {
 					checkAndReportOnRepositoryState()
 					return nil
@@ -120,23 +120,17 @@ func createCommandLineApp() *cli.App {
 			},
 			{
 				Name:  "transition",
-				Usage: "Displays the status of <nnnn>. Will output the status of every RFD if it isn't provided an RFD ID.",
+				Usage: "Transitions an RFD's status to the next applicable status. Where possible, the RFD is picked up from the current branch. (NOT IMPLEMENTED)",
 				Action: func(c *cli.Context) error {
 					return nil
 				},
 			},
 			{
 				Name:  "show",
-				Usage: "Displays the status of <nnnn>. Will output the status of every RFD if it isn't provided an RFD ID.",
-				Action: func(c *cli.Context) error {
-					return nil
-				},
-			},
-			{
-				Name:  "test-config",
-				Usage: "Testing testing.",
+				Usage: "Displays the status of the current RFD (as per the branch id if there is no id provided). (NOT IMPLEMENTED)",
 				Action: func(c *cli.Context) error {
 
+					getDefaultStatus()
 					return nil
 				},
 			},
@@ -254,12 +248,12 @@ func checkAndReportOnRepositoryState() bool {
 	var fileStatusMapping = map[git.StatusCode]string{
 		git.Unmodified:         "Unmodified",
 		git.Untracked:          "Untracked",
-		git.Modified:           "Modified",
-		git.Added:              "Added",
-		git.Deleted:            "Deleted",
-		git.Renamed:            "Renamed",
-		git.Copied:             "Copied",
-		git.UpdatedButUnmerged: "Updated",
+		git.Modified:           "==== Modified ====",
+		git.Added:              "==== Added ====",
+		git.Deleted:            "==== Deleted ====",
+		git.Renamed:            "==== Renamed ====",
+		git.Copied:             "==== Copied ====",
+		git.UpdatedButUnmerged: "==== Updated ====",
 	}
 
 	// Check to ensure git status is clean.

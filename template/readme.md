@@ -1,7 +1,7 @@
 ---
 title: {{.Title}}
 authors: {{.Authors}}
-state: prediscussion
+state: {{.State}}
 discussion: {{.Link}}
 ---
 | RFD ID | Title | Authors | State | Discussion Link |
