@@ -126,10 +126,9 @@ func createCommandLineApp() *cli.App {
 				},
 			},
 			{
-				Name:  "show",
+				Name:  "status",
 				Usage: "Displays the status of the current RFD (as per the branch id if there is no id provided). (NOT IMPLEMENTED)",
 				Action: func(c *cli.Context) error {
-
 					getDefaultStatus()
 					return nil
 				},
