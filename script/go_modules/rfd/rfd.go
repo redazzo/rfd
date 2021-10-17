@@ -119,8 +119,8 @@ func createCommandLineApp() *cli.App {
 				},
 			},
 			{
-				Name:  "transition",
-				Usage: "Transitions an RFD's status to the next applicable status. Where possible, the RFD is picked up from the current branch. (NOT IMPLEMENTED)",
+				Name:  "merge",
+				Usage: "Transitions an RFD's status to Accepted, captures the discussion link from the user, and merges it into the main branch (NOT IMPLEMENTED)",
 				Action: func(c *cli.Context) error {
 					return nil
 				},

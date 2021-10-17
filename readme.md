@@ -25,6 +25,7 @@ So, to facilitate the creation and management of rfd's we've created a simple co
 An RFD itself begins as a markdown document with a metadata header. The data to be captured includes the authors of the RFD, the state, title, and a link to the thread discussing the RFD. The state indicates where along the process the RFD has progressed, as per the following table. An example is shown below:
 
     ---
+    id: 0003
     title: Introduce Request for Discussion Process
     authors: Bob the Builder <bob@thebuilder.co>
     state: discussion
@@ -36,7 +37,7 @@ An RFD repository is structured as follows:
 
 1. Each RFD results in a folder named as per RFD ID, e.g. "0003". The folder holds a readme.md markdown document, and any other content, that describes the RFD. By using the readme.md naming convention, tools and services such as github will automatically display its content.
 2. A branch is created and named as per the RFD ID (i.e. in keeping the with the prior example, the branch name is "0003").
-3. Discussion on pull a request becomes a record of the changes and updates.
+3. Discussion on pull a request becomes a record of the changes and updates. The 0003 branch is merged into main (or master), which holds the definitive record of any RFDs that have been accepted.
 4. The markdown metadata located at the head of the RFD document is used to capture the title, author(s), and other data, and used to populate an index of all RFDs.
 
 
@@ -57,7 +58,7 @@ The first requirement is to create the repository - [you can find instructions f
 
 Clone your newly-created repository, [**making sure you use ssh**](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository). This is more secure, and is required for the RFD commandline tool to function.
 
-Once you've cloned your repository, and have installed the rfd commandline tools, ensure you're in the root of the rfd repository, and initialise the empty repository using the init command - 
+Once you've cloned your repository, and have installed the rfd commandline tools, ensure you're on the main branch and in the root of the rfd repository. Initialise the empty repository using the init command - 
 
     $ rfd init
 
@@ -79,7 +80,6 @@ An RFD progresses through stages that default to the following. Note that these 
 |accepted|Once (or if) discussion has converged and the Pull Request is ready to be merged, it should be updated to the accepted state before being merged into master. Note that just because something is in the accepted state does not mean that it cannot be updated and corrected.|
 |committed|Once an idea is being acted on (e.g. being built, coded, or moved into an operational state), it is moved to the committed state. Comments on RFDs in the committed state should generally be raised as issues -- but if the comment represents a call for a significant divergence from or extension to committed functionality, a new RFD may be called for; as in all things, use your best judgment.|
 |abandoned|If an idea is found to be non-viable (that is, deliberately never implemented after having been accepted) it can be moved into the abandoned state.|
-
 
 ### 1. Creating an RFD
 
@@ -112,8 +112,8 @@ The beauty of this process is that we take advantage of GitOps-style pull reques
 
 When you are ready to get feedback on your RFD, make sure all your local changes are pushed to the remote branch. Change the status of the RFD to discussion then commit and complete a push:
 
-    $ git commit -am '0004: Add RFD for <Title>'
-    $ git push origin 0004
+    $ git commit -am '0002: Add RFD for <Title>'
+    $ git push origin 0002
 
 Once pushed, *open a pull request to merge your branch into the master.* After the pull request is opened anyone subscribed to the repo will get a notification that you have opened a pull request and can read your RFD and give any feedback.
 
