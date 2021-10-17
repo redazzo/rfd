@@ -95,7 +95,7 @@ func writeMetadataToTableFile(metaData map[string]interface{}, mdTableFile *os.F
 
 	logger.traceLog(title + ":" + authors + ":" + state)
 
-	_, err := mdTableFile.WriteString("|" + branchID + "|" + title + "|" + state + "|" + authors + "|\n")
+	_, err := mdTableFile.WriteString("|[" + branchID + "](./" + branchID + "/readme.md)|" + title + "|" + state + "|" + authors + "|\n")
 	CheckFatal(err)
 
 	logger.traceLog("recorded: " + branchID)
