@@ -1,12 +1,14 @@
+# The root of the RFD repository
 rfd-root-directory: /home/redazzo/project/rfdcopy/rfd/script/test
-rfd-relative-directory: script/test
-install-directory: /home/redazzo/project/rfdcopy/rfd
-private-key-file-name: id_rsa #id_ed25519
 
-#rfd-root-directory: C:\Users\gerha\project\RFD\script\test
-#rfd-relative-directory: script\test
-#install-directory: C:\Users\gerha\project\RFD
-#private-key-file-name: id_rsa #id_ed25519
+# The relative location (to the rfd root) of the rfd's. Is usually blank.
+rfd-relative-directory: script/test
+
+# Installation directory of the rfd commandline tool. This is where the templates will be sourced from
+install-directory: /home/redazzo/project/rfdcopy/rfd
+
+# The ssh secret key file
+private-key-file-name: id_rsa #id_ed25519
 
 rfd-initial-author: "Bob the Taylor"
 organisation: "Test Organisation"
