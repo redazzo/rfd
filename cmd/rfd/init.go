@@ -75,7 +75,6 @@ func create0001Rfd() {
 
 		}
 
-
 	} else {
 
 		initReadme()
@@ -112,7 +111,6 @@ func initReadme() {
 		state,
 		link,
 		appConfig.RFDStates,
-
 	}, newRepoTemplateFileLocation)
 
 	copyToRoot(readmeFile, "readme.md", true)
@@ -122,4 +120,3 @@ func initReadme() {
 func printCancelled() {
 	println("Operation cancelled.")
 }
-
