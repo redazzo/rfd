@@ -1,8 +1,8 @@
 # The root of the RFD repository
-rfd-root-directory: /home/redazzo/project/rfdcopy/rfd/script/test
+rfd-root-directory: /home/redazzo/project/rfdcopy/rfd/test
 
 # The relative location (to the rfd root) of the rfd's. Is usually blank.
-rfd-relative-directory: script/test
+rfd-relative-directory: test
 
 # Installation directory of the rfd commandline tool. This is where the templates will be sourced from
 install-directory: /home/redazzo/project/rfdcopy/rfd
