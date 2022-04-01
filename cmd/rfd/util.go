@@ -20,13 +20,21 @@ type TraceLog struct {
 
 }
 
-func CheckFatal(e error) {
+func CheckFatalWithMessage(e error, msg string) {
 
 	if e != nil {
+		if msg != "" {
+			println(msg)
+		}
 		debug.PrintStack()
 		log.Fatal(e)
 
 	}
+}
+
+func CheckFatal(e error) {
+
+	CheckFatalWithMessage(e, "")
 }
 
 func (t TraceLog) traceLog(msg string) {

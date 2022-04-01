@@ -204,7 +204,7 @@ func populateConfig() *configuration {
 
 	// Open appConfig file
 	file, err := os.Open("./config.yml")
-	CheckFatal(err)
+	CheckFatalWithMessage(err, "\nThere doesn't appear to be a config file present. Are you in the root directory of your rfd repository directory?\n\n\n")
 
 	defer file.Close()
 
