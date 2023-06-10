@@ -5,10 +5,11 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
-	"os"
+	localConfig "github.com/redazzo/rfd/cmd/rfd/config"
+	"github.com/redazzo/rfd/cmd/rfd/global"
+	"github.com/redazzo/rfd/cmd/rfd/util"
 	"strconv"
 	"strings"
-	"text/template"
 )
 
 /*
@@ -32,23 +33,14 @@ To create a new RFD:
 
 */
 
-type RFDMetadata struct {
-	RFDID     string
-	Title     string
-	Authors   string
-	State     string
-	Link      string
-	RFDStates []map[string]map[string]string
-}
-
 func new() {
-	logger.traceLog("Creating new RFD")
+	util.Logger.TraceLog("Creating new RFD")
 
 	newRFDNumber := getMaxRFDNumber() + 1
-	logger.traceLog("New RFD Number: " + strconv.Itoa(newRFDNumber))
+	util.Logger.TraceLog("New RFD Number: " + strconv.Itoa(newRFDNumber))
 
-	title := getUserInput("Enter title of RFD: ")
-	authors := getUserInput("Enter authors, comma delimited: ")
+	title := util.GetUserInput("Enter title of RFD: ")
+	authors := util.GetUserInput("Enter authors, comma delimited: ")
 
 	fmt.Println("Title: " + title)
 	fmt.Println("Authors: " + authors)
@@ -58,7 +50,7 @@ func new() {
 
 	err := createRFD(newRFDNumber, title, authors, defaultStatus, "")
 
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 }
 
@@ -66,7 +58,7 @@ func getDefaultStatus() string {
 
 	var result string = "ERROR"
 
-	for _, state := range appStates.RFDStates {
+	for _, state := range global.APP_STATES.RFDStates {
 		for _, m := range state {
 			if m["id"] == "1" {
 				result = m["name"]
@@ -86,73 +78,47 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 
 	// Create a branch named as per "nnnn"
 	err, r, w, _ := createBranch(formattedRFDNumber)
-	CheckFatal(err)
+	util.CheckFatal(err)
 
-	err, _ = createReadme(&RFDMetadata{
+	err, _ = localConfig.CreateReadme(&global.RFDMetadata{
 		formattedRFDNumber,
 		title,
 		authors,
 		state,
 		link,
 		nil,
-	}, templateFileLocation)
+	}, global.TEMPLATE_FILE_LOCATION)
 
 	// Update index
 	Index()
 
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	// Stage and commit
-	logger.traceLog("Staging ...")
-	tmpPrefix := getPathPrefix()
+	util.Logger.TraceLog("Staging ...")
 
-	_, err = w.Add(tmpPrefix + formattedRFDNumber + sPathseparator)
-	CheckFatal(err)
-	_, err = w.Add(tmpPrefix + formattedRFDNumber + sPathseparator + "readme.md")
-	CheckFatal(err)
-	_, err = w.Add(tmpPrefix + "index.md")
-	CheckFatal(err)
+	_, err = w.Add(formattedRFDNumber + global.PATH_SEPARATOR)
+	util.CheckFatal(err)
+	_, err = w.Add(formattedRFDNumber + global.PATH_SEPARATOR + "readme.md")
+	util.CheckFatal(err)
+	_, err = w.Add("index.md")
+	util.CheckFatal(err)
 
-	logger.traceLog("Committing ...")
+	util.Logger.TraceLog("Committing ...")
 	_, err = w.Commit("Earmark branch", &git.CommitOptions{
 		All: true,
 	})
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	// Push to origin and set upstream
-	logger.traceLog("Pushing to origin ...")
-	err = pushToOrigin(r)
-	CheckFatal(err)
-	logger.traceLog("Pushed to origin")
+	util.Logger.TraceLog("Pushing to origin ...")
+	err = util.PushToOrigin(r)
+	util.CheckFatal(err)
+	util.Logger.TraceLog("Pushed to origin")
 
-	logger.traceLog("Setting upstream ...")
+	util.Logger.TraceLog("Setting upstream ...")
 	err = setUpstream(r, formattedRFDNumber)
-	logger.traceLog("Upstream set to " + formattedRFDNumber)
-
-	return err
-}
-
-func getPathPrefix() string {
-	//tmpPrefix := sPathseparator
-	//if len(strings.TrimSpace(appConfig.RFDRelativeDirectory)) == 0 {
-	//	tmpPrefix = ""
-	//} else {
-	//	tmpPrefix = appConfig.RFDRelativeDirectory + sPathseparator
-	//}
-	tmpPrefix := ""
-	return tmpPrefix
-}
-
-func pushToOrigin(r *git.Repository) error {
-
-	publicKey, err := getPublicKey()
-
-	err = r.Push(&git.PushOptions{
-		RemoteName: "origin",
-		Auth:       publicKey,
-		Force:      true,
-	})
-	CheckFatal(err)
+	util.Logger.TraceLog("Upstream set to " + formattedRFDNumber)
 
 	return err
 }
@@ -160,9 +126,9 @@ func pushToOrigin(r *git.Repository) error {
 func setUpstream(r *git.Repository, formattedRFDNumber string) error {
 
 	r, err := git.PlainOpen(".")
-	CheckFatal(err)
+	util.CheckFatal(err)
 	currentConfig, err := r.Config()
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	branches := currentConfig.Branches
 
@@ -177,7 +143,7 @@ func setUpstream(r *git.Repository, formattedRFDNumber string) error {
 	branches[formattedRFDNumber] = newBranch
 
 	err = r.Storer.SetConfig(currentConfig)
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	return err
 }
@@ -193,51 +159,19 @@ func formatToNNNN(rfdNumber int) string {
 	return sRfdNumber
 }
 
-func createReadme(metadata *RFDMetadata, tmplate string) (error, *os.File) {
-
-	logger.traceLog("Creating placeholder readme file, and adding to repository")
-	// Create readme.md file with template @ template/readme.md
-
-	logger.traceLog("Template:" + tmplate)
-
-	bTemplate, err := os.ReadFile(tmplate)
-	CheckFatal(err)
-	sTemplate := string(bTemplate)
-	tmpl, err := template.New("test").Parse(sTemplate)
-	CheckFatal(err)
-
-	// Create local directory
-
-	err = os.Mkdir(getRFDDirectory(metadata.RFDID), 0755)
-	CheckFatal(err)
-
-	// Write out new readme.md to nnnn/readme.md
-	// Status on readme.md will be set to "prediscussion"
-	fReadme, err := os.Create(getRFDDirectory(metadata.RFDID) + sPathseparator + "readme.md")
-	CheckFatal(err)
-	defer fReadme.Close()
-
-	err = tmpl.Execute(fReadme, metadata)
-	return err, fReadme
-}
-
 func undoCreateReadme() {
 
 	fmt.Println("Called undoCreateReadme - but I'm empty :(")
 
 }
 
-func getRFDDirectory(sRfdNumber string) string {
-	return appConfig.RootDirectory + "/" + sRfdNumber
-}
-
 func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree, *plumbing.Reference) {
 
 	r, err := git.PlainOpen(".")
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	headRef, err := r.Head()
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	// Create a new plumbing.HashReference object with the name of the branch
 	// and the hash from the HEAD. The reference name should be a full reference
@@ -250,19 +184,19 @@ func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree, *plu
 
 	// The created reference is saved in the storage.
 	err = r.Storer.SetReference(ref)
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	w, err := r.Worktree()
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	// ... checking out to commit
-	logger.traceLog("checking out")
+	util.Logger.TraceLog("checking out")
 
 	err = w.Checkout(&git.CheckoutOptions{
 		Branch: ref.Name(),
 		Keep:   true,
 	})
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	return err, r, w, ref
 }
@@ -275,16 +209,16 @@ func undoCreateBranch() {
 func getMaxRFDNumber() int {
 
 	err, maxRFDBranchId := getMaxBranchId()
-	CheckFatal(err)
-	logger.traceLog("Local branch max id: " + strconv.Itoa(maxRFDBranchId))
+	util.CheckFatal(err)
+	util.Logger.TraceLog("Local branch max id: " + strconv.Itoa(maxRFDBranchId))
 
 	err, maxRFDDirId := getMaxDirId()
-	CheckFatal(err)
-	logger.traceLog("Directory branch max id: " + strconv.Itoa(maxRFDDirId))
+	util.CheckFatal(err)
+	util.Logger.TraceLog("Directory branch max id: " + strconv.Itoa(maxRFDDirId))
 
 	err, maxRemoteRFDBranchId := getMaxRemoteBranchId()
-	CheckFatal(err)
-	logger.traceLog("Remote branch max id: " + strconv.Itoa(maxRemoteRFDBranchId))
+	util.CheckFatal(err)
+	util.Logger.TraceLog("Remote branch max id: " + strconv.Itoa(maxRemoteRFDBranchId))
 
 	maxRFDId := maxRFDBranchId
 	if maxRFDDirId > maxRFDBranchId {
@@ -300,11 +234,11 @@ func getMaxRFDNumber() int {
 func getMaxBranchId() (error, int) {
 
 	r, err := git.PlainOpen(".")
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	// ... retrieving the branches
 	branches, err := r.Branches()
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	var maxRFDId = 0
 
@@ -316,8 +250,8 @@ func getMaxBranchId() (error, int) {
 		sId := name[11:]
 
 		// A valid branch id is nnnn, e.g. 0007
-		entryIsBranchID, err := isRFDIDFormat(sId)
-		CheckFatal(err)
+		entryIsBranchID, err := util.IsRFDIDFormat(sId)
+		util.CheckFatal(err)
 
 		if entryIsBranchID {
 			rfdId, err := strconv.Atoi(sId)
@@ -340,8 +274,8 @@ func getMaxDirId() (error, int) {
 	entries := getDirectories()
 	for _, entry := range entries {
 
-		entryIsBranchID, err := isRFDIDFormat(entry.Name())
-		CheckFatal(err)
+		entryIsBranchID, err := util.IsRFDIDFormat(entry.Name())
+		util.CheckFatal(err)
 
 		if entryIsBranchID {
 
@@ -370,16 +304,16 @@ func getMaxRemoteBranchId() (error, int) {
 	var maxRemoteBranchId = 0
 
 	r, err := git.PlainOpen(".")
-	CheckFatal(err)
+	util.CheckFatal(err)
 
-	publicKey, err := getPublicKey()
+	publicKey, err := util.GetPublicKey()
 
 	remote, err := r.Remote("origin")
-	CheckFatal(err)
+	util.CheckFatal(err)
 	refList, err := remote.List(&git.ListOptions{
 		Auth: publicKey,
 	})
-	CheckFatal(err)
+	util.CheckFatal(err)
 
 	refPrefix := "refs/heads/"
 	for _, ref := range refList {
@@ -390,8 +324,8 @@ func getMaxRemoteBranchId() (error, int) {
 		}
 		branchName := refName[len(refPrefix):]
 
-		entryIsBranchID, err := isRFDIDFormat(branchName)
-		CheckFatal(err)
+		entryIsBranchID, err := util.IsRFDIDFormat(branchName)
+		util.CheckFatal(err)
 
 		if entryIsBranchID {
 			entryId, err := strconv.Atoi(branchName)
