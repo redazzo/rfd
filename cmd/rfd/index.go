@@ -3,8 +3,8 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/redazzo/rfd/cmd/rfd/global"
-	"github.com/redazzo/rfd/cmd/rfd/util"
+	"github.com/redazzo/rfd/cmd/rfd/internal/global"
+	"github.com/redazzo/rfd/cmd/rfd/internal/util"
 	"io/ioutil"
 	"os"
 	"regexp"

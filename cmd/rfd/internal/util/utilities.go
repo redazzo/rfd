@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
-	"github.com/redazzo/rfd/cmd/rfd/global"
+	"github.com/redazzo/rfd/cmd/rfd/internal/global"
 	"io/ioutil"
 	"log"
 	"os"

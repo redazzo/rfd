@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/redazzo/rfd/cmd/rfd/config"
-	"github.com/redazzo/rfd/cmd/rfd/global"
-	"github.com/redazzo/rfd/cmd/rfd/util"
+	"github.com/redazzo/rfd/cmd/rfd/internal/config"
+	"github.com/redazzo/rfd/cmd/rfd/internal/global"
+	"github.com/redazzo/rfd/cmd/rfd/internal/util"
 	"github.com/urfave/cli/v2"
 	"os"
 	"runtime"

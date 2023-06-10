@@ -5,9 +5,9 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
-	localConfig "github.com/redazzo/rfd/cmd/rfd/config"
-	"github.com/redazzo/rfd/cmd/rfd/global"
-	"github.com/redazzo/rfd/cmd/rfd/util"
+	localConfig "github.com/redazzo/rfd/cmd/rfd/internal/config"
+	"github.com/redazzo/rfd/cmd/rfd/internal/global"
+	"github.com/redazzo/rfd/cmd/rfd/internal/util"
 	"strconv"
 	"strings"
 )

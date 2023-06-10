@@ -3,8 +3,8 @@ package config
 import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
-	"github.com/redazzo/rfd/cmd/rfd/global"
-	"github.com/redazzo/rfd/cmd/rfd/util"
+	"github.com/redazzo/rfd/cmd/rfd/internal/global"
+	"github.com/redazzo/rfd/cmd/rfd/internal/util"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
