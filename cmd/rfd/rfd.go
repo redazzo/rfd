@@ -6,7 +6,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"os"
 	"runtime"
 )
@@ -22,29 +21,60 @@ var sPathseparator string
 
 var logger Trace
 var appConfig *configuration
+var appStates *states
 
 type configuration struct {
-	RFDRootDirectory     string                         `yaml:"rfd-root-directory"`
-	InstallDirectory     string                         `yaml:"install-directory"`
-	RFDRelativeDirectory string                         `yaml:"rfd-relative-directory"`
-	PrivateKeyFileName   string                         `yaml:"private-key-file-name"`
-	Organisation         string                         `yaml:"organisation"`
-	InstigationDate      string                         `yaml:"instigation-date"`
-	RFDStates            []map[string]map[string]string `yaml:"rfd-states"`
+	RootDirectory      string `yaml:"root-directory"`
+	TemplatesDirectory string `yaml:"templates-directory"`
+	//RFDRelativeDirectory string                         `yaml:"rfd-relative-directory"`
+	PrivateKeyFileName string `yaml:"private-key-file-name"`
+	InitialAuthor      string `yaml:"initial-author"`
+	Organisation       string `yaml:"organisation"`
+	InstigationDate    string `yaml:"instigation-date"`
 }
 
-func init() {
+type states struct {
+	RFDStates []map[string]map[string]string `yaml:"rfd-states"`
+}
 
+func preConfigure() {
 	sPathseparator = string(os.PathSeparator)
-
 	logger = TraceLog{}
-	appConfig = populateConfig()
+
+}
+
+func configure() {
+
+	err := checkConfigurationFile()
+	CheckFatal(err)
+	appConfig, err = populateConfig()
+	if err != nil {
+		fmt.Println("Error populating configuration")
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+}
+
+func postConfigure() {
+
+	initFileLocations()
+
+	populatedStates, err := getConfiguredStates()
+	if err != nil {
+		fmt.Println("Error populating states")
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	appStates = populatedStates
+
 	initSSHDIR()
+}
+
+func initFileLocations() {
 	initTemplateFileLocation()
 	initNewRepoTemplateFileLocation()
-
-	err := checkConfig()
-	CheckFatal(err)
 }
 
 func main() {
@@ -53,7 +83,6 @@ func main() {
 	CheckFatal(err)
 }
 
-//
 func createCommandLineApp() *cli.App {
 	app := &cli.App{
 		Name:  "rfd",
@@ -63,6 +92,9 @@ func createCommandLineApp() *cli.App {
 				Name:  "check",
 				Usage: "Check environment is suitable to ensure a clean run when creating a new RFD.",
 				Action: func(c *cli.Context) error {
+					preConfigure()
+					configure()
+					postConfigure()
 					checkAndReportOnRepositoryState()
 					return nil
 				},
@@ -71,6 +103,9 @@ func createCommandLineApp() *cli.App {
 				Name:  "index",
 				Usage: "Output the status of all rfd's to index.md in markdown format.",
 				Action: func(c *cli.Context) error {
+					preConfigure()
+					configure()
+					postConfigure()
 					Index()
 					return nil
 				},
@@ -80,6 +115,9 @@ func createCommandLineApp() *cli.App {
 				Usage: "Create a new rfd",
 				Action: func(c *cli.Context) error {
 					if checkAndReportOnRepositoryState() {
+						preConfigure()
+						configure()
+						postConfigure()
 						new()
 					} else {
 						fmt.Println("Creating a new RFD creates and switches to new branch. Commit (or otherwise) unstaged and/or uncommitted work first.")
@@ -93,7 +131,9 @@ func createCommandLineApp() *cli.App {
 				Name:  "init",
 				Usage: "Initialise an RFD repository.",
 				Action: func(c *cli.Context) error {
+					preConfigure()
 					initRepo()
+
 					return nil
 				},
 			},
@@ -101,6 +141,9 @@ func createCommandLineApp() *cli.App {
 				Name:  "environment",
 				Usage: "Displays configuration settings and relevant operating system environment variables.",
 				Action: func(c *cli.Context) error {
+					preConfigure()
+					configure()
+					postConfigure()
 					displayEnvironment()
 					return nil
 				},
@@ -109,6 +152,9 @@ func createCommandLineApp() *cli.App {
 				Name:  "merge",
 				Usage: "Transitions an RFD's status to Accepted, captures the discussion link from the user, and merges it into the main branch (NOT IMPLEMENTED)",
 				Action: func(c *cli.Context) error {
+					preConfigure()
+					configure()
+					postConfigure()
 					doMerge()
 					return nil
 				},
@@ -117,6 +163,11 @@ func createCommandLineApp() *cli.App {
 				Name:  "status",
 				Usage: "Displays the status of the current RFD (as per branch). (NOT IMPLEMENTED)",
 				Action: func(c *cli.Context) error {
+
+					preConfigure()
+					configure()
+					postConfigure()
+
 					getDefaultStatus()
 					return nil
 				},
@@ -160,16 +211,16 @@ func initSSHDIR() {
 }
 
 func initTemplateFileLocation() {
-	templateFileLocation = appConfig.InstallDirectory + sPathseparator + "template" + sPathseparator + "readme.md"
+	templateFileLocation = appConfig.TemplatesDirectory + sPathseparator + "readme.md"
 }
 
 func initNewRepoTemplateFileLocation() {
-	newRepoTemplateFileLocation = appConfig.InstallDirectory + sPathseparator + "template" + sPathseparator + "0001" + sPathseparator + "readme.md"
+	newRepoTemplateFileLocation = appConfig.TemplatesDirectory + sPathseparator + "0001" + sPathseparator + "readme.md"
 }
 
 func displayEnvironment() {
 	operatingSystem := runtime.GOOS
-	fmt.Println(operatingSystem)
+	fmt.Println("OS: " + operatingSystem)
 	switch operatingSystem {
 	case "windows":
 		fmt.Println("HOMEDRIVE=" + os.Getenv(HOMEDRIVE))
@@ -177,9 +228,9 @@ func displayEnvironment() {
 	case "linux":
 		fmt.Println("HOME=" + os.Getenv(HOME))
 	}
-	fmt.Println("RFD root directory=" + appConfig.RFDRootDirectory)
-	fmt.Println("RFD relative directory=" + appConfig.RFDRelativeDirectory)
-	fmt.Println("Installation directory=" + appConfig.InstallDirectory)
+	fmt.Println("RFD root directory=" + appConfig.RootDirectory)
+	//fmt.Println("RFD relative directory=" + appConfig.RFDRelativeDirectory)
+	fmt.Println("Installation directory=" + appConfig.TemplatesDirectory)
 	fmt.Println("SSH public key directory=" + getSSHPath())
 
 	publicKey, err := getPublicKey()
@@ -198,13 +249,19 @@ func displayEnvironment() {
 	fmt.Printf("%+v", appConfig)
 }
 
-func populateConfig() *configuration {
+func populateConfig() (*configuration, error) {
+
+	err := checkConfigurationFile()
+	if err != nil {
+		return nil, err
+	}
+
 	// Create appConfig structure
 	config := &configuration{}
 
 	// Open appConfig file
 	file, err := os.Open("./config.yml")
-	CheckFatalWithMessage(err, "\nThere doesn't appear to be a config file present. Are you in the root directory of your rfd repository directory?\n\n\n")
+	CheckFatal(err)
 
 	defer file.Close()
 
@@ -215,22 +272,50 @@ func populateConfig() *configuration {
 	err = d.Decode(&config)
 	CheckFatal(err)
 
-	return config
+	return config, err
 }
 
-func checkConfig() error {
+func getConfiguredStates() (*states, error) {
 
-	// Check location of template file is correct
-	_, err := ioutil.ReadFile(templateFileLocation)
+	err := checkStatesFile()
 	if err != nil {
-		fmt.Println("Attempted to read " + templateFileLocation)
-		fmt.Println("Can't read readme template file. Please check the config.yml file.\n")
+		return nil, err
 	}
 
-	return err
+	// Create states structure
+	states := &states{}
+
+	// Open appConfig file
+	file, err := os.Open(appConfig.TemplatesDirectory + "/states.yml")
+	CheckFatal(err)
+
+	defer file.Close()
+
+	// Init new YAML decode
+	d := yaml.NewDecoder(file)
+
+	// Start YAML decoding from file
+	err = d.Decode(&states)
+	CheckFatal(err)
+
+	return states, err
 }
 
+func checkStatesFile() error {
+
+	if _, err := os.Stat(appConfig.TemplatesDirectory + "/states.yml"); os.IsNotExist(err) {
+		fmt.Println("templateFileLocation: " + appConfig.TemplatesDirectory)
+		fmt.Println("States file does not exist... ")
+		return err
+	}
+	return nil
+}
 func checkAndReportOnRepositoryState() bool {
+
+	err := checkConfigurationFile()
+	if err != nil {
+		return false
+	}
 
 	var fileStatusMapping = map[git.StatusCode]string{
 		git.Unmodified:         "Unmodified",
@@ -270,4 +355,17 @@ func checkAndReportOnRepositoryState() bool {
 	}
 
 	return status.IsClean()
+}
+
+func checkConfigurationFile() error {
+	// Check to ensure there is a config file present
+	_, err := os.Stat("./config.yml")
+	if os.IsNotExist(err) {
+		fmt.Print(
+			"\n  There doesn't appear to be a configuration file present.\n" +
+				"  Either run 'rfd init', or if you have, make sure you are\n" +
+				"  in the root directory of your rfd repository.\n\n")
+		return err
+	}
+	return nil
 }

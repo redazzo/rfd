@@ -17,7 +17,7 @@ func Index() error {
 	logger.traceLog("Creating index file ...")
 
 	// The entries to be read and written to the
-	// markdown table file.
+	// Markdown table file.
 
 	// The file that will be updated with the
 	// rfd entries and their status.
@@ -39,7 +39,7 @@ func Index() error {
 
 			if entry.IsDir() {
 
-				subEntries, err := ioutil.ReadDir(appConfig.RFDRootDirectory + "/" + entry.Name())
+				subEntries, err := ioutil.ReadDir(appConfig.RootDirectory + "/" + entry.Name())
 				CheckFatal(err)
 
 				for _, subEntry := range subEntries {
@@ -70,13 +70,13 @@ func Index() error {
 }
 
 func getDirectories() []os.FileInfo {
-	entries, err := ioutil.ReadDir(appConfig.RFDRootDirectory)
+	entries, err := ioutil.ReadDir(appConfig.RootDirectory)
 	CheckFatal(err)
 	return entries
 }
 
 func openMetadataTableFile() *os.File {
-	mdTableFile, err := os.Create(appConfig.RFDRootDirectory + "/index.md")
+	mdTableFile, err := os.Create(appConfig.RootDirectory + "/index.md")
 	CheckFatal(err)
 
 	_, err = mdTableFile.WriteString("**Index of Requests for Discussion**\n\n")
@@ -103,13 +103,13 @@ func writeMetadataToTableFile(metaData map[string]interface{}, mdTableFile *os.F
 }
 
 func readMetadataFromReadmeFile(subEntry os.FileInfo, entry os.FileInfo) map[string]interface{} {
-	logger.traceLog("Found " + appConfig.RFDRootDirectory + "/" + entry.Name() + "/" + subEntry.Name())
+	logger.traceLog("Found " + appConfig.RootDirectory + "/" + entry.Name() + "/" + subEntry.Name())
 	markdown := goldmark.New(
 		goldmark.WithExtensions(
 			meta.Meta,
 		),
 	)
-	file, err := ioutil.ReadFile(appConfig.RFDRootDirectory + "/" + entry.Name() + "/" + subEntry.Name())
+	file, err := ioutil.ReadFile(appConfig.RootDirectory + "/" + entry.Name() + "/" + subEntry.Name())
 	CheckFatal(err)
 
 	var buf bytes.Buffer

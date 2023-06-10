@@ -90,16 +90,16 @@ func copyToRoot(source string, target string, force bool) {
 
 	CheckFatal(err)
 
-	if exists(appConfig.RFDRootDirectory + sPathseparator + target) {
+	if exists(appConfig.RootDirectory + sPathseparator + target) {
 		if force {
-			err = os.Remove(appConfig.RFDRootDirectory + sPathseparator + target)
+			err = os.Remove(appConfig.RootDirectory + sPathseparator + target)
 			CheckFatal(err)
 		} else {
 			log.Fatal("Error: Attempted to overwrite " + source + " to RFD root.")
 		}
 	}
 
-	err = ioutil.WriteFile(appConfig.RFDRootDirectory+sPathseparator+target, bytesRead, 0744)
+	err = ioutil.WriteFile(appConfig.RootDirectory+sPathseparator+target, bytesRead, 0744)
 
 	if err != nil {
 		log.Fatal(err)

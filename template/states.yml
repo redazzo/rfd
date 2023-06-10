@@ -1,0 +1,23 @@
+# Description: This file contains the states that are used in the RFD process.
+
+rfd-states:
+  - state:
+      id: 1
+      name: draft
+      description: "The first draft, can be used to capture the beginnings of a thought, or even just a single sentence so that it's not forgotten. A document in the draft state contains at least a description of the topic that the RFD will cover, providing an indication of the scope of the eventual RFD."
+  - state:
+      id: 2
+      name: discussion
+      description: "Documents under active discussion should be in the discussion state, with the discussion taking place in an active Pull Request."
+  - state:
+      id: 3
+      name: accepted
+      description: "Once (or if) discussion has converged and the Pull Request is ready to be merged, it should be updated to the accepted state before being merged into master. Note that just because something is in the accepted state does not mean that it cannot be updated and corrected."
+  - state:
+      id: 4
+      name: committed
+      description: "Once an idea is being acted on (e.g. being built, coded, or moved into an operational state), it is moved to the committed state. Comments on RFDs in the committed state should generally be raised as issues -- but if the comment represents a call for a significant divergence from or extension to committed functionality, a new RFD may be called for; as in all things, use your best judgment."
+  - state:
+      id: 5
+      name: abandoned
+      description: "If an idea is found to be non-viable (that is, deliberately never implemented after having been accepted) it can be moved into the abandoned state."

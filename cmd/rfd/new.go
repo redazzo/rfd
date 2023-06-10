@@ -5,7 +5,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -67,7 +66,7 @@ func getDefaultStatus() string {
 
 	var result string = "ERROR"
 
-	for _, state := range appConfig.RFDStates {
+	for _, state := range appStates.RFDStates {
 		for _, m := range state {
 			if m["id"] == "1" {
 				result = m["name"]
@@ -134,12 +133,13 @@ func createRFD(rfdNumber int, title string, authors string, state string, link s
 }
 
 func getPathPrefix() string {
-	tmpPrefix := sPathseparator
-	if len(strings.TrimSpace(appConfig.RFDRelativeDirectory)) == 0 {
-		tmpPrefix = ""
-	} else {
-		tmpPrefix = appConfig.RFDRelativeDirectory + sPathseparator
-	}
+	//tmpPrefix := sPathseparator
+	//if len(strings.TrimSpace(appConfig.RFDRelativeDirectory)) == 0 {
+	//	tmpPrefix = ""
+	//} else {
+	//	tmpPrefix = appConfig.RFDRelativeDirectory + sPathseparator
+	//}
+	tmpPrefix := ""
 	return tmpPrefix
 }
 
@@ -198,8 +198,9 @@ func createReadme(metadata *RFDMetadata, tmplate string) (error, *os.File) {
 	logger.traceLog("Creating placeholder readme file, and adding to repository")
 	// Create readme.md file with template @ template/readme.md
 
-	logger.traceLog(tmplate)
-	bTemplate, err := ioutil.ReadFile(tmplate)
+	logger.traceLog("Template:" + tmplate)
+
+	bTemplate, err := os.ReadFile(tmplate)
 	CheckFatal(err)
 	sTemplate := string(bTemplate)
 	tmpl, err := template.New("test").Parse(sTemplate)
@@ -227,7 +228,7 @@ func undoCreateReadme() {
 }
 
 func getRFDDirectory(sRfdNumber string) string {
-	return appConfig.RFDRootDirectory + "/" + sRfdNumber
+	return appConfig.RootDirectory + "/" + sRfdNumber
 }
 
 func createBranch(rfdNumber string) (error, *git.Repository, *git.Worktree, *plumbing.Reference) {
