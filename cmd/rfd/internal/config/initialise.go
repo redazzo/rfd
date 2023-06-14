@@ -210,16 +210,16 @@ func getConfigurationInfoFromUser() (string, string, string, string, string) {
 	fmt.Println("Using repository root: " + repositoryRoot)
 
 	// Get template directory from user
-	/*templatesDirectory := GetUserInput("Enter the path to the directory where the rfd templates are located (default: <current directory>/template):")
+	templatesDirectory := GetUserInput("Enter the path to the directory where the rfd templates are located (default: <current directory>/template):")
 	if templatesDirectory == "" {
 		// if the repository root is empty, then use the working directory
 		templatesDirectory, _ = os.Getwd()
 		templatesDirectory = templatesDirectory + PATH_SEPARATOR + "template"
-	}*/
+	}
 
-	templatesDirectory := repositoryRoot + PATH_SEPARATOR + "template"
+	//templatesDirectory := repositoryRoot + PATH_SEPARATOR + "template"
 
-	Logger.TraceLog("Fetching templates and copying to " + templatesDirectory)
+	//Logger.TraceLog("Fetching templates and copying to " + templatesDirectory)
 	//FetchTemplateDirectory()
 
 	// Check to see if the directory exists,and if not, exit.
