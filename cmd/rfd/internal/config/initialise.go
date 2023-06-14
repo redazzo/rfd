@@ -141,7 +141,7 @@ func InitialiseRepo() {
 	repository, worktree, err := stage()
 	err = commit(err, worktree)
 	pushToOrigin(err, repository)
-	FetchTemplateDirectory()
+	//FetchTemplateDirectory()
 
 }
 
@@ -220,7 +220,7 @@ func getConfigurationInfoFromUser() (string, string, string, string, string) {
 	templatesDirectory := repositoryRoot + PATH_SEPARATOR + "template"
 
 	Logger.TraceLog("Fetching templates and copying to " + templatesDirectory)
-	FetchTemplateDirectory()
+	//FetchTemplateDirectory()
 
 	// Check to see if the directory exists,and if not, exit.
 	if !Exists(templatesDirectory) {
