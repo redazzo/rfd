@@ -3,8 +3,6 @@ package config
 import (
 	"fmt"
 	"github.com/go-git/go-git/v5"
-	"github.com/redazzo/rfd/cmd/rfd/internal/global"
-	"github.com/redazzo/rfd/cmd/rfd/internal/util"
 	"gopkg.in/yaml.v3"
 	"log"
 	"os"
@@ -15,28 +13,7 @@ import (
 	"time"
 )
 
-func PreConfigure() {
-
-	global.PATH_SEPARATOR = string(os.PathSeparator)
-
-}
-
-func Configure() {
-
-	err := checkConfigurationFile()
-	util.CheckFatal(err)
-	global.APP_CONFIG, err = populateConfig()
-	if err != nil {
-		fmt.Println("Error populating configuration")
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-}
-
 func PostConfigure() {
-
-	initFileLocations()
 
 	populatedStates, err := getConfiguredStates()
 	if err != nil {
@@ -45,14 +22,9 @@ func PostConfigure() {
 		os.Exit(1)
 	}
 
-	global.APP_STATES = populatedStates
+	APP_STATES = populatedStates
 
 	initSSHDIR()
-}
-
-func initFileLocations() {
-	initTemplateFileLocation()
-	initNewRepoTemplateFileLocation()
 }
 
 func initSSHDIR() {
@@ -60,48 +32,14 @@ func initSSHDIR() {
 	operatingSystem := runtime.GOOS
 	switch operatingSystem {
 	case "windows":
-		global.SSHDIR = os.Getenv(global.HOMEDRIVE) + os.Getenv(global.HOMEPATH)
+		SSHDIR = os.Getenv(HOMEDRIVE) + os.Getenv(HOMEPATH)
 	case "linux":
-		global.SSHDIR = os.Getenv(global.HOME)
+		SSHDIR = os.Getenv(HOME)
 	}
 
 }
 
-func initTemplateFileLocation() {
-	global.TEMPLATE_FILE_LOCATION = global.APP_CONFIG.TemplatesDirectory + global.PATH_SEPARATOR + "readme.md"
-}
-
-func initNewRepoTemplateFileLocation() {
-	global.REPO_TEMPLATE_FILE_LOCATION = global.APP_CONFIG.TemplatesDirectory + global.PATH_SEPARATOR + "0001" + global.PATH_SEPARATOR + "readme.md"
-}
-
-func populateConfig() (*global.Configuration, error) {
-
-	err := checkConfigurationFile()
-	if err != nil {
-		return nil, err
-	}
-
-	// Create appConfig structure
-	config := &global.Configuration{}
-
-	// Open appConfig file
-	file, err := os.Open("./config.yml")
-	util.CheckFatal(err)
-
-	defer file.Close()
-
-	// Init new YAML decode
-	d := yaml.NewDecoder(file)
-
-	// Start YAML decoding from file
-	err = d.Decode(&config)
-	util.CheckFatal(err)
-
-	return config, err
-}
-
-func getConfiguredStates() (*global.States, error) {
+func getConfiguredStates() (*States, error) {
 
 	err := checkStatesFile()
 	if err != nil {
@@ -109,11 +47,11 @@ func getConfiguredStates() (*global.States, error) {
 	}
 
 	// Create states structure
-	states := &global.States{}
+	states := &States{}
 
 	// Open appConfig file
-	file, err := os.Open(global.APP_CONFIG.TemplatesDirectory + "/states.yml")
-	util.CheckFatal(err)
+	file, err := os.Open(APP_CONFIG.TemplatesDirectory + "/states.yml")
+	CheckFatal(err)
 
 	defer file.Close()
 
@@ -122,15 +60,15 @@ func getConfiguredStates() (*global.States, error) {
 
 	// Start YAML decoding from file
 	err = d.Decode(&states)
-	util.CheckFatal(err)
+	CheckFatal(err)
 
 	return states, err
 }
 
 func checkStatesFile() error {
 
-	if _, err := os.Stat(global.APP_CONFIG.TemplatesDirectory + "/states.yml"); os.IsNotExist(err) {
-		fmt.Println("templateFileLocation: " + global.APP_CONFIG.TemplatesDirectory)
+	if _, err := os.Stat(APP_CONFIG.TemplatesDirectory + "/states.yml"); os.IsNotExist(err) {
+		fmt.Println("templateFileLocation: " + APP_CONFIG.TemplatesDirectory)
 		fmt.Println("States file does not exist... ")
 		return err
 	}
@@ -139,7 +77,7 @@ func checkStatesFile() error {
 
 func CheckAndReportOnRepositoryState() bool {
 
-	err := checkConfigurationFile()
+	err := CheckConfigurationFilePresence()
 	if err != nil {
 		return false
 	}
@@ -157,7 +95,7 @@ func CheckAndReportOnRepositoryState() bool {
 
 	// Check to ensure git status is clean.
 	r, err := git.PlainOpen(".")
-	util.CheckFatal(err)
+	CheckFatal(err)
 
 	w, err := r.Worktree()
 	status, err := w.Status()
@@ -184,19 +122,6 @@ func CheckAndReportOnRepositoryState() bool {
 	return status.IsClean()
 }
 
-func checkConfigurationFile() error {
-	// Check to ensure there is a config file present
-	_, err := os.Stat("./config.yml")
-	if os.IsNotExist(err) {
-		fmt.Print(
-			"\n  There doesn't appear to be a configuration file present.\n" +
-				"  Either run 'rfd init', or if you have, make sure you are\n" +
-				"  in the root directory of your rfd repository.\n\n")
-		return err
-	}
-	return nil
-}
-
 /**
 Initialising a repo steps:
 
@@ -212,80 +137,107 @@ func InitialiseRepo() {
 
 	// Colate initial configuration information from user
 	colateInitialConfiguration()
-
 	create0001Rfd()
+	repository, worktree, err := stage()
+	err = commit(err, worktree)
+	pushToOrigin(err, repository)
+	FetchTemplateDirectory()
 
-	// Stage and commit
-	util.Logger.TraceLog("Staging ...")
-	r, err := git.PlainOpen(".")
-	util.CheckFatal(err)
-	w, err := r.Worktree()
-	util.CheckFatal(err)
+}
 
-	_, err = w.Add("0001" + global.PATH_SEPARATOR)
-	util.CheckFatal(err)
-	_, err = w.Add("0001" + global.PATH_SEPARATOR + "readme.md")
-	util.CheckFatal(err)
-	_, err = w.Add("readme.md")
-	util.CheckFatal(err)
+func pushToOrigin(err error, repository *git.Repository) {
+	Logger.TraceLog("Pushing to origin ...")
+	err = PushToOrigin(repository)
+	CheckFatal(err)
+	Logger.TraceLog("Pushed to origin")
+}
 
-	util.Logger.TraceLog("Committing ...")
-	_, err = w.Commit("Initialising repository", &git.CommitOptions{
+func commit(err error, worktree *git.Worktree) error {
+	Logger.TraceLog("Committing ...")
+	_, err = worktree.Commit("Initialising repository", &git.CommitOptions{
 		All: true,
 	})
-	util.CheckFatal(err)
+	CheckFatal(err)
+	return err
+}
 
-	// Push to origin
-	util.Logger.TraceLog("Pushing to origin ...")
-	err = util.PushToOrigin(r)
-	util.CheckFatal(err)
-	util.Logger.TraceLog("Pushed to origin")
+func stage() (*git.Repository, *git.Worktree, error) {
+	// Stage and commit
+	Logger.TraceLog("Staging ...")
+	repository, err := git.PlainOpen(".")
+	CheckFatal(err)
+	worktree, err := repository.Worktree()
+	CheckFatal(err)
 
+	_, err = worktree.Add("0001" + PATH_SEPARATOR)
+	CheckFatal(err)
+	_, err = worktree.Add("0001" + PATH_SEPARATOR + "readme.md")
+	CheckFatal(err)
+	_, err = worktree.Add("readme.md")
+	CheckFatal(err)
+	return repository, worktree, err
 }
 
 func colateInitialConfiguration() {
 
 	// Collect information from user on where the rfd repo will be created.
+	repositoryRoot, templatesDirectory, keyType, userName, organisation := getConfigurationInfoFromUser()
+
+	// Write the configuration file
+	writeConfigFile(repositoryRoot, templatesDirectory, keyType, userName, organisation)
+
+	// Configure the repository
+	Configure()
+	PostConfigure()
+
+}
+
+func getConfigurationInfoFromUser() (string, string, string, string, string) {
 	// Default to the current directory.
 
-	repositoryRoot := util.GetUserInput("Enter the path to the directory where you want to create the rfd repository (default: current directory):")
+	repositoryRoot := GetUserInput("Enter the path to the directory where you want to create the rfd repository (default: current directory):")
 	if repositoryRoot == "" {
 		// if the repository root is empty, then use the working directory
 		repositoryRoot, _ = os.Getwd()
 	}
 
 	// Check to see if the directory exists,and if not, exit.
-	if !util.Exists(repositoryRoot) {
-		util.Logger.TraceLog("The directory " + repositoryRoot + " does not exist.")
+	if !Exists(repositoryRoot) {
+		Logger.TraceLog("The directory " + repositoryRoot + " does not exist.")
 		os.Exit(1)
 	}
 
 	fmt.Println("Using repository root: " + repositoryRoot)
 
 	// Get template directory from user
-	templatesDirectory := util.GetUserInput("Enter the path to the directory where the rfd templates are located (default: <current directory>/template):")
+	/*templatesDirectory := GetUserInput("Enter the path to the directory where the rfd templates are located (default: <current directory>/template):")
 	if templatesDirectory == "" {
 		// if the repository root is empty, then use the working directory
 		templatesDirectory, _ = os.Getwd()
-		templatesDirectory = templatesDirectory + global.PATH_SEPARATOR + "template"
-	}
+		templatesDirectory = templatesDirectory + PATH_SEPARATOR + "template"
+	}*/
+
+	templatesDirectory := repositoryRoot + PATH_SEPARATOR + "template"
+
+	Logger.TraceLog("Fetching templates and copying to " + templatesDirectory)
+	FetchTemplateDirectory()
 
 	// Check to see if the directory exists,and if not, exit.
-	if !util.Exists(templatesDirectory) {
-		util.Logger.TraceLog("The directory " + templatesDirectory + " does not exist.")
+	if !Exists(templatesDirectory) {
+		Logger.TraceLog("The directory " + templatesDirectory + " does not exist.")
 		os.Exit(1)
 	}
 
 	fmt.Println("Using templates directory: " + templatesDirectory)
 
-	RSA_OR_DSA := util.GetUserInput("Enter the type of SSH key you are using (RSA/dsa):")
+	RSA_OR_DSA := GetUserInput("Enter the type of SSH key you are using (RSA/dsa):")
 	if RSA_OR_DSA == "" {
 		// If it's empty, deault to RSA
 		RSA_OR_DSA = "RSA"
 	}
 
 	if RSA_OR_DSA != "RSA" && RSA_OR_DSA != "rsa" && RSA_OR_DSA != "DSA" && RSA_OR_DSA != "dsa" {
-		util.Logger.TraceLog("Invalid key type. Exiting.")
+		Logger.TraceLog("Invalid key type. Exiting.")
 		os.Exit(1)
 	}
 
@@ -297,7 +249,7 @@ func colateInitialConfiguration() {
 	fmt.Println("Using " + keyType + " key type.")
 
 	// Get the name of the first user
-	userName := util.GetUserInput("Enter the name of the first user (default: the current user name):")
+	userName := GetUserInput("Enter the name of the first user (default: the current user name):")
 	if userName == "" {
 		// If it's empty, deault to the current user
 		user, err := user.Current()
@@ -311,25 +263,18 @@ func colateInitialConfiguration() {
 	fmt.Println("Using " + userName + " as the first author.")
 
 	// Get the name of the organisation
-	organisation := util.GetUserInput("Enter the name of the organisation (default: MyOrg):")
+	organisation := GetUserInput("Enter the name of the organisation (default: MyOrg):")
 	if organisation == "" {
 		organisation = "MyOrg"
 	}
 
 	fmt.Println("Using " + organisation + " as the organisation.")
-
-	// Write the configuration file
-	writeConfigFile(repositoryRoot, templatesDirectory, keyType, userName, organisation)
-
-	// Configure the repo
-	Configure()
-	PostConfigure()
-
+	return repositoryRoot, templatesDirectory, keyType, userName, organisation
 }
 
 func writeConfigFile(repositoryRoot string, templatesDirectory string, keyType string, userName string, organisation string) {
 
-	global.APP_CONFIG = &global.Configuration{
+	APP_CONFIG = &Configuration{
 		RootDirectory:      repositoryRoot,
 		TemplatesDirectory: templatesDirectory,
 		PrivateKeyFileName: keyType,
@@ -346,7 +291,7 @@ func writeConfigFile(repositoryRoot string, templatesDirectory string, keyType s
 	//defer file.Close()
 
 	// Write the configuration file
-	yamlData, err := yaml.Marshal(global.APP_CONFIG)
+	yamlData, err := yaml.Marshal(APP_CONFIG)
 
 	if err != nil {
 		log.Fatal("Error while Marshaling. %v", err)
@@ -361,11 +306,11 @@ func writeConfigFile(repositoryRoot string, templatesDirectory string, keyType s
 
 func create0001Rfd() {
 
-	var fileExists = util.Exists(util.GetRFDDirectory("0001") + global.PATH_SEPARATOR + "readme.md")
+	var fileExists = Exists(GetRFDDirectory("0001") + PATH_SEPARATOR + "readme.md")
 
 	if fileExists {
 
-		response := util.GetUserInput("File exists. Overwrite (y/N)?")
+		response := GetUserInput("File exists. Overwrite (y/N)?")
 		response = strings.ToUpper(response)
 
 		switch response {
@@ -396,60 +341,60 @@ func create0001Rfd() {
 func initReadme() {
 
 	formattedRFDNumber := "0001"
-	title := "The " + global.APP_CONFIG.Organisation + " Request for Discussion Process"
-	authors := global.APP_CONFIG.InitialAuthor
+	title := "The " + APP_CONFIG.Organisation + " Request for Discussion Process"
+	authors := APP_CONFIG.InitialAuthor
 	state := "discussion"
 	link := ""
 
-	readmeFile := util.GetRFDDirectory(formattedRFDNumber) + global.PATH_SEPARATOR + "readme.md"
+	readmeFile := GetRFDDirectory(formattedRFDNumber) + PATH_SEPARATOR + "readme.md"
 
-	if util.Exists(util.GetRFDDirectory(formattedRFDNumber)) {
+	if Exists(GetRFDDirectory(formattedRFDNumber)) {
 
-		if util.Exists(readmeFile) {
+		if Exists(readmeFile) {
 			err := os.Remove(readmeFile)
-			util.CheckFatal(err)
+			CheckFatal(err)
 		}
 
-		err := os.Remove(util.GetRFDDirectory(formattedRFDNumber))
-		util.CheckFatal(err)
+		err := os.Remove(GetRFDDirectory(formattedRFDNumber))
+		CheckFatal(err)
 
 	}
 
-	CreateReadme(&global.RFDMetadata{
+	CreateReadme(&RFDMetadata{
 		formattedRFDNumber,
 		title,
 		authors,
 		state,
 		link,
-		global.APP_STATES.RFDStates,
-	}, global.REPO_TEMPLATE_FILE_LOCATION)
+		APP_STATES.RFDStates,
+	}, APP_CONFIG.Get001ReadmeFileLocation())
 
-	util.CopyToRoot(readmeFile, "readme.md", true)
+	CopyToRoot(readmeFile, "readme.md", true)
 
 }
 
-func CreateReadme(metadata *global.RFDMetadata, tmplate string) (error, *os.File) {
+func CreateReadme(metadata *RFDMetadata, tmplate string) (error, *os.File) {
 
-	util.Logger.TraceLog("Creating placeholder readme file, and adding to repository")
+	Logger.TraceLog("Creating placeholder readme file, and adding to repository")
 	// Create readme.md file with template @ template/readme.md
 
-	util.Logger.TraceLog("Template:" + tmplate)
+	Logger.TraceLog("Template:" + tmplate)
 
 	bTemplate, err := os.ReadFile(tmplate)
-	util.CheckFatal(err)
+	CheckFatal(err)
 	sTemplate := string(bTemplate)
 	tmpl, err := template.New("test").Parse(sTemplate)
-	util.CheckFatal(err)
+	CheckFatal(err)
 
 	// Create local directory
 
-	err = os.Mkdir(util.GetRFDDirectory(metadata.RFDID), 0755)
-	util.CheckFatal(err)
+	err = os.Mkdir(GetRFDDirectory(metadata.RFDID), 0755)
+	CheckFatal(err)
 
 	// Write out new readme.md to nnnn/readme.md
 	// Status on readme.md will be set to "prediscussion"
-	fReadme, err := os.Create(util.GetRFDDirectory(metadata.RFDID) + global.PATH_SEPARATOR + "readme.md")
-	util.CheckFatal(err)
+	fReadme, err := os.Create(GetRFDDirectory(metadata.RFDID) + PATH_SEPARATOR + "readme.md")
+	CheckFatal(err)
 	defer fReadme.Close()
 
 	err = tmpl.Execute(fReadme, metadata)

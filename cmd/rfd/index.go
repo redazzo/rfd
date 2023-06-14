@@ -3,8 +3,7 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"github.com/redazzo/rfd/cmd/rfd/internal/global"
-	"github.com/redazzo/rfd/cmd/rfd/internal/util"
+	"github.com/redazzo/rfd/cmd/rfd/internal/config"
 	"io/ioutil"
 	"os"
 	"regexp"
@@ -16,7 +15,7 @@ import (
 
 func Index() error {
 
-	util.Logger.TraceLog("Creating index file ...")
+	config.Logger.TraceLog("Creating index file ...")
 
 	// The entries to be read and written to the
 	// Markdown table file.
@@ -30,26 +29,26 @@ func Index() error {
 	entries := getDirectories()
 	for _, entry := range entries {
 
-		entryIsBranchID, err := util.IsRFDIDFormat(entry.Name())
-		util.CheckFatal(err)
+		entryIsBranchID, err := config.IsRFDIDFormat(entry.Name())
+		config.CheckFatal(err)
 
 		if entryIsBranchID {
 
-			util.Logger.TraceLog("Matched " + entry.Name())
+			config.Logger.TraceLog("Matched " + entry.Name())
 
 			branchID := entry.Name()
 
 			if entry.IsDir() {
 
-				subEntries, err := ioutil.ReadDir(global.APP_CONFIG.RootDirectory + "/" + entry.Name())
-				util.CheckFatal(err)
+				subEntries, err := ioutil.ReadDir(config.APP_CONFIG.RootDirectory + "/" + entry.Name())
+				config.CheckFatal(err)
 
 				for _, subEntry := range subEntries {
 
 					if !subEntry.IsDir() {
 
 						isReadmeFile, err := regexp.MatchString(`(?i)^readme.md`, subEntry.Name())
-						util.CheckFatal(err)
+						config.CheckFatal(err)
 
 						if isReadmeFile {
 
@@ -72,21 +71,21 @@ func Index() error {
 }
 
 func getDirectories() []os.FileInfo {
-	entries, err := ioutil.ReadDir(global.APP_CONFIG.RootDirectory)
-	util.CheckFatal(err)
+	entries, err := ioutil.ReadDir(config.APP_CONFIG.RootDirectory)
+	config.CheckFatal(err)
 	return entries
 }
 
 func openMetadataTableFile() *os.File {
-	mdTableFile, err := os.Create(global.APP_CONFIG.RootDirectory + "/index.md")
-	util.CheckFatal(err)
+	mdTableFile, err := os.Create(config.APP_CONFIG.RootDirectory + "/index.md")
+	config.CheckFatal(err)
 
 	_, err = mdTableFile.WriteString("**Index of Requests for Discussion**\n\n")
-	util.CheckFatal(err)
+	config.CheckFatal(err)
 	_, err = mdTableFile.WriteString("| **RFD Id** | **Title** | **State** | **Author(s)** |\n")
-	util.CheckFatal(err)
+	config.CheckFatal(err)
 	_, err = mdTableFile.WriteString("|------------|-----------|-----------|------------------------|\n")
-	util.CheckFatal(err)
+	config.CheckFatal(err)
 	return mdTableFile
 }
 
@@ -95,24 +94,24 @@ func writeMetadataToTableFile(metaData map[string]interface{}, mdTableFile *os.F
 	authors := fmt.Sprintf("%v", metaData["authors"])
 	state := fmt.Sprintf("%v", metaData["state"])
 
-	util.Logger.TraceLog(title + ":" + authors + ":" + state)
+	config.Logger.TraceLog(title + ":" + authors + ":" + state)
 
 	_, err := mdTableFile.WriteString("|[" + branchID + "](./" + branchID + "/readme.md)|" + title + "|" + state + "|" + authors + "|\n")
-	util.CheckFatal(err)
+	config.CheckFatal(err)
 
-	util.Logger.TraceLog("recorded: " + branchID)
-	util.Logger.TraceLog("----------------------------------------------")
+	config.Logger.TraceLog("recorded: " + branchID)
+	config.Logger.TraceLog("----------------------------------------------")
 }
 
 func readMetadataFromReadmeFile(subEntry os.FileInfo, entry os.FileInfo) map[string]interface{} {
-	util.Logger.TraceLog("Found " + global.APP_CONFIG.RootDirectory + "/" + entry.Name() + "/" + subEntry.Name())
+	config.Logger.TraceLog("Found " + config.APP_CONFIG.RootDirectory + "/" + entry.Name() + "/" + subEntry.Name())
 	markdown := goldmark.New(
 		goldmark.WithExtensions(
 			meta.Meta,
 		),
 	)
-	file, err := os.ReadFile(global.APP_CONFIG.RootDirectory + "/" + entry.Name() + "/" + subEntry.Name())
-	util.CheckFatal(err)
+	file, err := os.ReadFile(config.APP_CONFIG.RootDirectory + "/" + entry.Name() + "/" + subEntry.Name())
+	config.CheckFatal(err)
 
 	var buf bytes.Buffer
 	context := parser.NewContext()

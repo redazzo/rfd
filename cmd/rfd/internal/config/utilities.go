@@ -1,10 +1,10 @@
-package util
+package config
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
-	"github.com/redazzo/rfd/cmd/rfd/internal/global"
+	//"github.com/redazzo/rfd/cmd/rfd/internal/config"
 	"io/ioutil"
 	"log"
 	"os"
@@ -50,18 +50,6 @@ func IsRFDIDFormat(name string) (bool, error) {
 	return entryIsBranchID, err
 }
 
-func GetPublicKey() (*ssh.PublicKeys, error) {
-	sshPath := GetSSHPath()
-	publicKey, err := ssh.NewPublicKeysFromFile("git", sshPath, "")
-	return publicKey, err
-}
-
-func GetSSHPath() string {
-	sPathseparator := string(os.PathSeparator)
-	sshPath := global.SSHDIR + sPathseparator + ".ssh" + sPathseparator + global.APP_CONFIG.PrivateKeyFileName
-	return sshPath
-}
-
 func Exists(sFile string) bool {
 	_, err := os.Stat(sFile)
 
@@ -94,16 +82,16 @@ func CopyToRoot(source string, target string, force bool) {
 
 	CheckFatal(err)
 
-	if Exists(global.APP_CONFIG.RootDirectory + global.PATH_SEPARATOR + target) {
+	if Exists(APP_CONFIG.RootDirectory + PATH_SEPARATOR + target) {
 		if force {
-			err = os.Remove(global.APP_CONFIG.RootDirectory + global.PATH_SEPARATOR + target)
+			err = os.Remove(APP_CONFIG.RootDirectory + PATH_SEPARATOR + target)
 			CheckFatal(err)
 		} else {
 			log.Fatal("Error: Attempted to overwrite " + source + " to RFD root.")
 		}
 	}
 
-	err = os.WriteFile(global.APP_CONFIG.RootDirectory+global.PATH_SEPARATOR+target, bytesRead, 0744)
+	err = os.WriteFile(APP_CONFIG.RootDirectory+PATH_SEPARATOR+target, bytesRead, 0744)
 
 	if err != nil {
 		log.Fatal(err)
@@ -126,5 +114,32 @@ func PushToOrigin(r *git.Repository) error {
 }
 
 func GetRFDDirectory(sRfdNumber string) string {
-	return global.APP_CONFIG.RootDirectory + "/" + sRfdNumber
+	return APP_CONFIG.RootDirectory + "/" + sRfdNumber
+}
+
+func FetchTemplateDirectory() {
+
+	// Fetch the template directory from the remote repo
+	// and copy it to the local RFD root directory.
+
+	// This is a one-time operation, so we don't need to
+	// check if the directory already exists.
+
+	repoURL := "https://github.com/redazzo/rfd"
+	targetDirectory := APP_CONFIG.RootDirectory + PATH_SEPARATOR + "template"
+
+	// Clone the repo to the target directory
+	_, err := git.PlainClone(targetDirectory, false, &git.CloneOptions{
+		URL:               repoURL,
+		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+	})
+
+	if err != nil {
+		fmt.Printf("Failed to clone repository: %v\n", err)
+		return
+	}
+
+	// Repository cloned successfully
+	fmt.Println("Repository cloned successfully.")
+
 }

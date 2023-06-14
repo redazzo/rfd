@@ -4,8 +4,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"github.com/redazzo/rfd/cmd/rfd/internal/config"
-	"github.com/redazzo/rfd/cmd/rfd/internal/global"
-	"github.com/redazzo/rfd/cmd/rfd/internal/util"
 	"github.com/urfave/cli/v2"
 	"os"
 	"runtime"
@@ -14,7 +12,7 @@ import (
 func main() {
 	app := createCommandLineApp()
 	err := app.Run(os.Args)
-	util.CheckFatal(err)
+	config.CheckFatal(err)
 }
 
 func createCommandLineApp() *cli.App {
@@ -26,7 +24,6 @@ func createCommandLineApp() *cli.App {
 				Name:  "check",
 				Usage: "Check environment is suitable to ensure a clean run when creating a new RFD.",
 				Action: func(c *cli.Context) error {
-					config.PreConfigure()
 					config.Configure()
 					config.PostConfigure()
 					config.CheckAndReportOnRepositoryState()
@@ -37,7 +34,6 @@ func createCommandLineApp() *cli.App {
 				Name:  "index",
 				Usage: "Output the status of all rfd's to index.md in markdown format.",
 				Action: func(c *cli.Context) error {
-					config.PreConfigure()
 					config.Configure()
 					config.PostConfigure()
 					Index()
@@ -49,7 +45,6 @@ func createCommandLineApp() *cli.App {
 				Usage: "Create a new rfd",
 				Action: func(c *cli.Context) error {
 					if config.CheckAndReportOnRepositoryState() {
-						config.PreConfigure()
 						config.Configure()
 						config.PostConfigure()
 						new()
@@ -65,7 +60,7 @@ func createCommandLineApp() *cli.App {
 				Name:  "init",
 				Usage: "Initialise an RFD repository.",
 				Action: func(c *cli.Context) error {
-					config.PreConfigure()
+
 					config.InitialiseRepo()
 
 					return nil
@@ -75,7 +70,6 @@ func createCommandLineApp() *cli.App {
 				Name:  "environment",
 				Usage: "Displays configuration settings and relevant operating system environment variables.",
 				Action: func(c *cli.Context) error {
-					config.PreConfigure()
 					config.Configure()
 					config.PostConfigure()
 					displayEnvironment()
@@ -86,7 +80,6 @@ func createCommandLineApp() *cli.App {
 				Name:  "merge",
 				Usage: "Transitions an RFD's status to Accepted, captures the discussion link from the user, and merges it into the main branch (NOT IMPLEMENTED)",
 				Action: func(c *cli.Context) error {
-					config.PreConfigure()
 					config.Configure()
 					config.PostConfigure()
 					doMerge()
@@ -98,7 +91,6 @@ func createCommandLineApp() *cli.App {
 				Usage: "Displays the status of the current RFD (as per branch). (NOT IMPLEMENTED)",
 				Action: func(c *cli.Context) error {
 
-					config.PreConfigure()
 					config.Configure()
 					config.PostConfigure()
 
@@ -137,29 +129,29 @@ func displayEnvironment() {
 	fmt.Println("OS: " + operatingSystem)
 	switch operatingSystem {
 	case "windows":
-		fmt.Println("HOMEDRIVE=" + os.Getenv(global.HOMEDRIVE))
-		fmt.Println("HOMEPATH =" + os.Getenv(global.HOMEPATH))
+		fmt.Println("HOMEDRIVE=" + os.Getenv(config.HOMEDRIVE))
+		fmt.Println("HOMEPATH =" + os.Getenv(config.HOMEPATH))
 	case "linux":
-		fmt.Println("HOME=" + os.Getenv(global.HOME))
+		fmt.Println("HOME=" + os.Getenv(config.HOME))
 	}
-	fmt.Println("RFD root directory=" + global.APP_CONFIG.RootDirectory)
+	fmt.Println("RFD root directory=" + config.APP_CONFIG.RootDirectory)
 	//fmt.Println("RFD relative directory=" + appConfig.RFDRelativeDirectory)
-	fmt.Println("Installation directory=" + global.APP_CONFIG.TemplatesDirectory)
-	fmt.Println("SSH public key directory=" + util.GetSSHPath())
+	fmt.Println("Installation directory=" + config.APP_CONFIG.TemplatesDirectory)
+	fmt.Println("SSH public key directory=" + config.GetSSHPath())
 
-	publicKey, err := util.GetPublicKey()
-	util.CheckFatal(err)
+	publicKey, err := config.GetPublicKey()
+	config.CheckFatal(err)
 
 	bytes := publicKey.Signer.PublicKey().Marshal()
 
 	sPublicKey := base64.StdEncoding.EncodeToString(bytes) + " " + publicKey.User
-	util.CheckFatal(err)
+	config.CheckFatal(err)
 
 	fmt.Println("SSH Public Key=" + sPublicKey)
 
 	println()
 	println()
 
-	fmt.Printf("%+v", global.APP_CONFIG)
+	fmt.Printf("%+v", config.APP_CONFIG)
 	fmt.Println()
 }
