@@ -145,6 +145,60 @@ func InitialiseRepo() {
 
 }
 
+func colateInitialConfiguration() {
+
+	// Collect information from user on where the rfd repo will be created.
+	repositoryRoot, templatesDirectory, keyType, userName, organisation := getConfigurationInfoFromUser()
+
+	// Write the configuration file
+	writeConfigFile(repositoryRoot, templatesDirectory, keyType, userName, organisation)
+
+	// Configure the repository
+	Configure()
+
+	// Write the template directory
+	_, err := WriteTemplates()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	PostConfigure()
+}
+
+func create0001Rfd() {
+
+	var fileExists = Exists(GetRFDDirectory("0001") + PATH_SEPARATOR + "readme.md")
+
+	if fileExists {
+
+		response := GetUserInput("File exists. Overwrite (y/N)?")
+		response = strings.ToUpper(response)
+
+		switch response {
+		case "N":
+			printCancelled()
+
+		case "NO":
+			printCancelled()
+
+		case "Y":
+			initReadme()
+
+		case "YES":
+			initReadme()
+
+		default:
+			printCancelled()
+
+		}
+
+	} else {
+
+		initReadme()
+
+	}
+}
+
 func pushToOrigin(err error, repository *git.Repository) {
 	Logger.TraceLog("Pushing to origin ...")
 	err = PushToOrigin(repository)
@@ -178,20 +232,6 @@ func stage() (*git.Repository, *git.Worktree, error) {
 	return repository, worktree, err
 }
 
-func colateInitialConfiguration() {
-
-	// Collect information from user on where the rfd repo will be created.
-	repositoryRoot, templatesDirectory, keyType, userName, organisation := getConfigurationInfoFromUser()
-
-	// Write the configuration file
-	writeConfigFile(repositoryRoot, templatesDirectory, keyType, userName, organisation)
-
-	// Configure the repository
-	Configure()
-	PostConfigure()
-
-}
-
 func getConfigurationInfoFromUser() (string, string, string, string, string) {
 	// Default to the current directory.
 
@@ -209,24 +249,7 @@ func getConfigurationInfoFromUser() (string, string, string, string, string) {
 
 	fmt.Println("Using repository root: " + repositoryRoot)
 
-	// Get template directory from user
-	templatesDirectory := GetUserInput("Enter the path to the directory where the rfd templates are located (default: <current directory>/template):")
-	if templatesDirectory == "" {
-		// if the repository root is empty, then use the working directory
-		templatesDirectory, _ = os.Getwd()
-		templatesDirectory = templatesDirectory + PATH_SEPARATOR + "template"
-	}
-
-	//templatesDirectory := repositoryRoot + PATH_SEPARATOR + "template"
-
-	//Logger.TraceLog("Fetching templates and copying to " + templatesDirectory)
-	//FetchTemplateDirectory()
-
-	// Check to see if the directory exists,and if not, exit.
-	if !Exists(templatesDirectory) {
-		Logger.TraceLog("The directory " + templatesDirectory + " does not exist.")
-		os.Exit(1)
-	}
+	templatesDirectory := repositoryRoot + PATH_SEPARATOR + "template"
 
 	fmt.Println("Using templates directory: " + templatesDirectory)
 
@@ -294,47 +317,13 @@ func writeConfigFile(repositoryRoot string, templatesDirectory string, keyType s
 	yamlData, err := yaml.Marshal(APP_CONFIG)
 
 	if err != nil {
-		log.Fatal("Error while Marshaling. %v", err)
+		log.Fatalf("Error while Marshaling. %v", err)
 	}
 
 	fileName := "config.yml"
 	err = os.WriteFile(fileName, yamlData, 0644)
 	if err != nil {
 		log.Fatal("Unable to write data into the file", err)
-	}
-}
-
-func create0001Rfd() {
-
-	var fileExists = Exists(GetRFDDirectory("0001") + PATH_SEPARATOR + "readme.md")
-
-	if fileExists {
-
-		response := GetUserInput("File exists. Overwrite (y/N)?")
-		response = strings.ToUpper(response)
-
-		switch response {
-		case "N":
-			printCancelled()
-
-		case "NO":
-			printCancelled()
-
-		case "Y":
-			initReadme()
-
-		case "YES":
-			initReadme()
-
-		default:
-			printCancelled()
-
-		}
-
-	} else {
-
-		initReadme()
-
 	}
 }
 

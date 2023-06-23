@@ -4,6 +4,10 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/go-git/go-git/v5"
+	"io"
+	"net/http"
+	"path/filepath"
+
 	//"github.com/redazzo/rfd/cmd/rfd/internal/config"
 	"io/ioutil"
 	"log"
@@ -117,29 +121,70 @@ func GetRFDDirectory(sRfdNumber string) string {
 	return APP_CONFIG.RootDirectory + "/" + sRfdNumber
 }
 
-func FetchTemplateDirectory() {
+func fetchFileFromURL(url string) ([]byte, error) {
 
-	// Fetch the template directory from the remote repo
-	// and copy it to the local RFD root directory.
-
-	// This is a one-time operation, so we don't need to
-	// check if the directory already exists.
-
-	repoURL := "https://github.com/redazzo/rfd"
-	targetDirectory := APP_CONFIG.RootDirectory + PATH_SEPARATOR + "template"
-
-	// Clone the repo to the target directory
-	_, err := git.PlainClone(targetDirectory, false, &git.CloneOptions{
-		URL:               repoURL,
-		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
-	})
-
+	// Make an HTTP GET request
+	response, err := http.Get(url)
 	if err != nil {
-		fmt.Printf("Failed to clone repository: %v\n", err)
-		return
+		fmt.Printf("Error while fetching the URL: %s", err)
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	// Read the response body
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Printf("Error while reading the response body: %s", err)
+		return nil, err
 	}
 
-	// Repository cloned successfully
-	fmt.Println("Repository cloned successfully.")
+	return body, nil
+
+}
+
+func WriteTemplates() (string, error) {
+
+	type FileToWrite struct {
+		URL         string
+		Destination string
+	}
+
+	targetDirectory := APP_CONFIG.RootDirectory + PATH_SEPARATOR + "template" + PATH_SEPARATOR
+
+	filesToWrite := []FileToWrite{
+		{
+			URL:         "https://sea-turtle-app-ufxrk.ondigitalocean.app/readme.md",
+			Destination: targetDirectory + "readme.md",
+		},
+		{
+			URL:         "https://sea-turtle-app-ufxrk.ondigitalocean.app/states.yml",
+			Destination: targetDirectory + "states.yml",
+		},
+		{
+			URL:         "https://sea-turtle-app-ufxrk.ondigitalocean.app/0001/readme.md",
+			Destination: targetDirectory + "0001" + PATH_SEPARATOR + "readme.md",
+		},
+	}
+
+	for _, file := range filesToWrite {
+		fileContent, err := fetchFileFromURL(file.URL)
+		if err != nil {
+			return targetDirectory, err
+		}
+
+		err = os.MkdirAll(filepath.Dir(file.Destination), 0744)
+		if err != nil {
+			return targetDirectory, err
+		}
+
+		err = os.WriteFile(file.Destination, fileContent, 0744)
+		if err != nil {
+			return targetDirectory, err
+		}
+
+		log.Printf("Wrote %s template to %s ...\n", filepath.Base(file.URL), filepath.Dir(file.Destination))
+	}
+
+	return targetDirectory, nil
 
 }
