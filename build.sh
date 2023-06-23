@@ -4,7 +4,7 @@ function doWindowsBuild() {
   echo "Building Windows binary. Binaries are in the /bin directory  ..."
   GOOS=windows
   GOARCH=amd64
-  go build -o ../bin/rfd.exe ../cmd/rfd
+  go build -o ./bin/rfd.exe ./cmd/rfd
   echo "Done"
 }
 
@@ -12,7 +12,7 @@ function doLinuxBuild() {
   echo "Building Linux binary. Binaries are in the /bin directory ..."
   GOOS=linux
   GOARCH=amd64
-  go build -o ../bin/rfd ../cmd/rfd
+  go build -o ./bin/rfd ./cmd/rfd
   echo "Done"
 }
 

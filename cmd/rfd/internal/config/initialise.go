@@ -223,12 +223,21 @@ func stage() (*git.Repository, *git.Worktree, error) {
 	worktree, err := repository.Worktree()
 	CheckFatal(err)
 
-	_, err = worktree.Add("0001" + PATH_SEPARATOR)
-	CheckFatal(err)
-	_, err = worktree.Add("0001" + PATH_SEPARATOR + "readme.md")
-	CheckFatal(err)
-	_, err = worktree.Add("readme.md")
-	CheckFatal(err)
+	paths := []string{
+		"0001" + PATH_SEPARATOR,
+		"0001" + PATH_SEPARATOR + "readme.md",
+		"readme.md",
+		"template" + PATH_SEPARATOR + "0001" + PATH_SEPARATOR + "readme.md",
+		"template" + PATH_SEPARATOR + "readme.md",
+		"template" + PATH_SEPARATOR + "states.yml",
+	}
+
+	for _, path := range paths {
+		_, err := worktree.Add(path)
+		CheckFatal(err)
+	}
+
+	Logger.TraceLog("Staged")
 	return repository, worktree, err
 }
 
